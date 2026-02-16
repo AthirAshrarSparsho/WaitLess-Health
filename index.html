@@ -1,90 +1,84 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="auto">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CareFinder Pro | Clinics, Hospitals & ER Wait Times</title>
-  <meta name="description" content="Find clinics, hospitals, and ER wait times near you with advanced map styles and smart filters." />
+  <title>PulseCare Finder | Clinics, Hospitals & ER Waits</title>
+  <meta name="description" content="Find clinics, hospitals, and ER options near you with smart wait-time ranking and advanced map controls." />
   <meta name="theme-color" content="#2563eb" />
 
-  <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin="anonymous"
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    crossorigin="anonymous"
-  ></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
 
   <style>
     :root {
-      --bg: #f3f7ff;
-      --bg-soft: #eef4ff;
+      --radius: 16px;
+      --radius-xl: 22px;
+      --maxw: 1400px;
+      --shadow: 0 16px 38px rgba(2, 10, 28, .12);
+
+      --bg: #f2f7ff;
+      --bg-soft: #eaf2ff;
       --card: #ffffff;
-      --card-2: #f8fbff;
+      --card-soft: #f8fbff;
       --text: #0f172a;
-      --muted: #5b6b87;
-      --line: #d9e5f7;
+      --muted: #637592;
+      --line: #d7e5fb;
       --primary: #2563eb;
       --primary-2: #1d4ed8;
       --accent: #10b981;
       --danger: #dc2626;
       --warning: #d97706;
-      --success: #16a34a;
       --purple: #7c3aed;
-      --shadow: 0 18px 44px rgba(15, 23, 42, .10);
-      --radius: 16px;
-      --radius-lg: 22px;
-      --maxw: 1360px;
       --chip-bg: #eef4ff;
-      --chip-line: #cfe0ff;
-      --chip-text: #1f3f7a;
-      --hero-grad:
-        radial-gradient(1000px 380px at 0% -5%, rgba(37,99,235,.20), transparent 65%),
-        radial-gradient(900px 360px at 100% -10%, rgba(16,185,129,.18), transparent 65%),
-        linear-gradient(180deg, #f7fbff, #eef4ff);
+      --chip-line: #d2e2ff;
+      --chip-text: #1d3f7b;
       --btn-bg: #ffffff;
       --btn-text: #0f172a;
-      --map-panel-bg: #ffffff;
+      --top-glass: rgba(242,247,255,.78);
+
+      --hero:
+        radial-gradient(1000px 360px at -10% -20%, rgba(37,99,235,.22), transparent 65%),
+        radial-gradient(900px 340px at 110% -20%, rgba(16,185,129,.18), transparent 65%),
+        linear-gradient(180deg, #f8fbff, #edf4ff);
     }
 
     html[data-theme="dark"] {
-      --bg: #060b16;
-      --bg-soft: #0b1322;
-      --card: #0f1a2d;
-      --card-2: #13223a;
-      --text: #e6efff;
-      --muted: #9cb1d3;
-      --line: #233450;
+      --bg: #070f1d;
+      --bg-soft: #0b1628;
+      --card: #101c30;
+      --card-soft: #13233a;
+      --text: #e8f0ff;
+      --muted: #9db0cf;
+      --line: #263a5a;
       --primary: #5b8cff;
-      --primary-2: #79a1ff;
+      --primary-2: #7aa0ff;
       --accent: #34d399;
       --danger: #f87171;
       --warning: #f59e0b;
-      --success: #4ade80;
       --purple: #a78bfa;
-      --shadow: 0 24px 55px rgba(0,0,0,.45);
-      --chip-bg: #12233d;
-      --chip-line: #27456f;
-      --chip-text: #d0e0ff;
-      --hero-grad:
-        radial-gradient(1000px 380px at 0% -5%, rgba(91,140,255,.30), transparent 65%),
-        radial-gradient(900px 360px at 100% -10%, rgba(52,211,153,.18), transparent 65%),
-        linear-gradient(180deg, #091225, #0a1628);
-      --btn-bg: #13233b;
-      --btn-text: #e6efff;
-      --map-panel-bg: #0e1a2f;
+      --chip-bg: #152943;
+      --chip-line: #2a4b74;
+      --chip-text: #d0e2ff;
+      --btn-bg: #152943;
+      --btn-text: #e8f0ff;
+      --top-glass: rgba(10,18,32,.72);
+
+      --hero:
+        radial-gradient(1000px 360px at -10% -20%, rgba(91,140,255,.30), transparent 65%),
+        radial-gradient(900px 340px at 110% -20%, rgba(52,211,153,.18), transparent 65%),
+        linear-gradient(180deg, #0b1628, #0c1a2d);
+
+      --shadow: 0 24px 56px rgba(0,0,0,.45);
     }
 
     * { box-sizing: border-box; }
     html, body { height: 100%; }
     body {
       margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color: var(--text);
       background: var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
       line-height: 1.35;
     }
 
@@ -94,24 +88,25 @@
       padding: 0 16px;
     }
 
-    /* Top bar */
+    /* top bar */
     .topbar {
       position: sticky;
       top: 0;
-      z-index: 1500;
+      z-index: 2000;
       backdrop-filter: blur(10px);
-      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      background: var(--top-glass);
       border-bottom: 1px solid color-mix(in srgb, var(--line) 85%, transparent);
     }
     .topbar-inner {
-      min-height: 72px;
+      min-height: 74px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      padding: 10px 0;
       flex-wrap: wrap;
+      padding: 10px 0;
     }
+
     .brand {
       display: flex;
       align-items: center;
@@ -119,11 +114,11 @@
       min-width: 0;
     }
     .logo {
-      width: 42px;
-      height: 42px;
-      border-radius: 13px;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
       background: linear-gradient(140deg, var(--primary), var(--accent));
-      box-shadow: 0 10px 26px color-mix(in srgb, var(--primary) 40%, transparent);
+      box-shadow: 0 10px 24px color-mix(in srgb, var(--primary) 35%, transparent);
       display: grid;
       place-items: center;
       color: #fff;
@@ -134,17 +129,17 @@
     .brand h1 {
       margin: 0;
       font-size: 18px;
-      letter-spacing: -.01em;
       line-height: 1.1;
+      letter-spacing: -.01em;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .brand small {
       display: block;
+      margin-top: 2px;
       color: var(--muted);
       font-size: 12px;
-      margin-top: 2px;
     }
 
     .top-actions {
@@ -163,56 +158,70 @@
       font-size: 13px;
       font-weight: 700;
       cursor: pointer;
-      transition: .15s ease;
+      transition: .14s ease;
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      box-shadow: 0 2px 8px rgba(15,23,42,.06);
+      white-space: nowrap;
     }
-    .btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(15,23,42,.12); }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(15,23,42,.12); }
     .btn.primary {
       background: linear-gradient(135deg, var(--primary), var(--primary-2));
       color: #fff;
       border-color: transparent;
       box-shadow: 0 10px 22px color-mix(in srgb, var(--primary) 40%, transparent);
     }
-    .btn.ghost {
-      background: transparent;
-    }
     .btn.danger {
+      border-color: color-mix(in srgb, var(--danger) 40%, var(--line));
       color: var(--danger);
-      border-color: color-mix(in srgb, var(--danger) 35%, var(--line));
       background: color-mix(in srgb, var(--danger) 10%, transparent);
     }
+    .btn.toggle.on {
+      background: color-mix(in srgb, var(--primary) 18%, var(--btn-bg));
+      border-color: color-mix(in srgb, var(--primary) 45%, var(--line));
+      color: color-mix(in srgb, var(--primary) 72%, var(--btn-text));
+    }
 
-    /* Hero */
+    /* hero */
     .hero {
       margin-top: 14px;
       border: 1px solid var(--line);
-      background: var(--hero-grad);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-xl);
+      background: var(--hero);
       box-shadow: var(--shadow);
       padding: 18px;
     }
     .hero h2 {
       margin: 0;
-      font-size: clamp(22px, 2.9vw, 33px);
-      line-height: 1.15;
+      font-size: clamp(23px, 3vw, 34px);
       letter-spacing: -.02em;
+      line-height: 1.15;
     }
     .hero p {
       margin: 9px 0 0;
       color: var(--muted);
-      max-width: 980px;
       font-size: 14px;
+      max-width: 960px;
     }
 
-    /* Controls */
+    .urgent-banner {
+      margin-top: 10px;
+      border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line));
+      background: color-mix(in srgb, var(--danger) 12%, transparent);
+      color: color-mix(in srgb, var(--danger) 85%, var(--text));
+      border-radius: 12px;
+      padding: 9px 11px;
+      font-size: 13px;
+      font-weight: 700;
+      display: none;
+    }
+
+    /* controls */
     .controls {
       margin-top: 12px;
-      background: var(--card);
       border: 1px solid var(--line);
       border-radius: 18px;
+      background: var(--card);
       box-shadow: var(--shadow);
       padding: 12px;
     }
@@ -223,30 +232,28 @@
       gap: 8px;
       align-items: center;
     }
-    .input-wrap {
-      position: relative;
-      min-width: 0;
-    }
+
+    .input-wrap { position: relative; min-width: 0; }
     .search-icon {
       position: absolute;
-      width: 17px;
-      height: 17px;
       left: 12px;
       top: 50%;
       transform: translateY(-50%);
+      width: 17px;
+      height: 17px;
       opacity: .65;
       pointer-events: none;
     }
     .search {
       width: 100%;
-      background: var(--card-2);
       border: 1px solid var(--line);
+      background: var(--card-soft);
       color: var(--text);
       border-radius: 13px;
       padding: 12px 12px 12px 38px;
       font-size: 14px;
       outline: none;
-      transition: .13s ease;
+      transition: .12s ease;
     }
     .search:focus {
       border-color: color-mix(in srgb, var(--primary) 50%, var(--line));
@@ -258,13 +265,13 @@
       top: calc(100% + 6px);
       left: 0;
       right: 0;
-      border-radius: 13px;
+      z-index: 2300;
       border: 1px solid var(--line);
+      border-radius: 13px;
       background: var(--card);
-      box-shadow: 0 18px 40px rgba(0,0,0,.20);
-      overflow: hidden;
-      z-index: 2000;
+      box-shadow: 0 20px 42px rgba(0,0,0,.25);
       display: none;
+      overflow: hidden;
       max-height: 320px;
       overflow-y: auto;
     }
@@ -274,51 +281,51 @@
       cursor: pointer;
     }
     .s-item:first-child { border-top: none; }
-    .s-item:hover, .s-item.active { background: color-mix(in srgb, var(--primary) 14%, var(--card)); }
-    .s-title { font-size: 13px; font-weight: 700; }
+    .s-item:hover, .s-item.active { background: color-mix(in srgb, var(--primary) 13%, var(--card)); }
+    .s-title { font-size: 13px; font-weight: 800; }
     .s-sub { font-size: 12px; color: var(--muted); margin-top: 1px; }
 
-    .filter-grid {
+    .grid {
       margin-top: 10px;
       display: grid;
-      grid-template-columns: repeat(8, minmax(0, 1fr));
+      grid-template-columns: repeat(8, minmax(0,1fr));
       gap: 8px;
     }
+
     .field {
-      background: var(--card-2);
       border: 1px solid var(--line);
+      background: var(--card-soft);
       border-radius: 12px;
       padding: 8px 9px;
       min-width: 0;
     }
     .field label {
       display: block;
+      margin-bottom: 5px;
       font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: .04em;
+      letter-spacing: .045em;
       color: var(--muted);
-      margin-bottom: 5px;
-      font-weight: 800;
+      font-weight: 900;
     }
-    .field select,
-    .field input[type="range"] {
+    .field select, .field input[type="range"] {
       width: 100%;
       border: none;
       outline: none;
       background: transparent;
       color: var(--text);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
     }
     .smallrow {
-      font-size: 11px;
-      color: var(--muted);
-      margin-top: 4px;
       display: flex;
       justify-content: space-between;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--muted);
     }
 
-    .chips-wrap {
+    .chips {
       margin-top: 9px;
       display: flex;
       gap: 7px;
@@ -331,7 +338,7 @@
       border-radius: 999px;
       padding: 7px 10px;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 800;
       cursor: pointer;
       user-select: none;
       transition: .12s ease;
@@ -340,31 +347,31 @@
     .chip.on {
       background: color-mix(in srgb, var(--primary) 20%, var(--chip-bg));
       border-color: color-mix(in srgb, var(--primary) 50%, var(--chip-line));
-      color: color-mix(in srgb, var(--primary) 72%, var(--text));
+      color: color-mix(in srgb, var(--primary) 75%, var(--text));
     }
 
-    /* Layout */
+    /* workspace */
     .workspace {
       margin-top: 12px;
       display: grid;
       grid-template-columns: 42% 58%;
       gap: 12px;
-      min-height: 700px;
+      min-height: 720px;
     }
 
     .panel {
-      background: var(--card);
       border: 1px solid var(--line);
       border-radius: 18px;
+      background: var(--card);
       box-shadow: var(--shadow);
-      min-height: 0;
       overflow: hidden;
+      min-height: 0;
     }
 
     .results-head {
       padding: 12px;
       border-bottom: 1px solid var(--line);
-      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 80%, var(--bg-soft)), var(--card));
+      background: linear-gradient(180deg, color-mix(in srgb, var(--card) 84%, var(--bg-soft)), var(--card));
       display: flex;
       justify-content: space-between;
       gap: 10px;
@@ -377,28 +384,29 @@
     }
     .results-head .sub {
       margin-top: 2px;
-      font-size: 12px;
       color: var(--muted);
-      font-weight: 600;
+      font-size: 12px;
+      font-weight: 700;
     }
+
     .stats {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
     }
     .stat {
-      min-width: 116px;
+      min-width: 112px;
       border: 1px solid var(--line);
-      background: var(--card-2);
       border-radius: 12px;
+      background: var(--card-soft);
       padding: 7px 9px;
     }
     .stat .k {
       font-size: 10px;
       color: var(--muted);
       text-transform: uppercase;
-      font-weight: 800;
-      letter-spacing: .04em;
+      letter-spacing: .045em;
+      font-weight: 900;
     }
     .stat .v {
       margin-top: 2px;
@@ -407,46 +415,36 @@
     }
 
     .results-list {
-      height: calc(700px - 74px);
+      height: calc(720px - 75px);
       overflow: auto;
       padding: 10px;
-      background: color-mix(in srgb, var(--card) 92%, var(--bg-soft));
+      background: color-mix(in srgb, var(--card) 94%, var(--bg-soft));
     }
 
     .card {
       border: 1px solid var(--line);
-      background: var(--card);
       border-radius: 14px;
+      background: var(--card);
       padding: 10px;
       margin-bottom: 9px;
-      transition: .14s ease;
+      transition: .13s ease;
       cursor: pointer;
     }
-    .card:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,.09); }
+    .card:hover { transform: translateY(-1px); box-shadow: 0 10px 20px rgba(0,0,0,.10); }
     .card.active {
-      border-color: color-mix(in srgb, var(--primary) 56%, var(--line));
+      border-color: color-mix(in srgb, var(--primary) 58%, var(--line));
       box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 20%, transparent);
-      background: color-mix(in srgb, var(--primary) 8%, var(--card));
+      background: color-mix(in srgb, var(--primary) 6%, var(--card));
     }
 
     .topline {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
       gap: 8px;
+      align-items: flex-start;
     }
-    .name {
-      margin: 0;
-      font-size: 15px;
-      font-weight: 900;
-      line-height: 1.2;
-      letter-spacing: -.01em;
-    }
-    .addr {
-      margin-top: 4px;
-      color: var(--muted);
-      font-size: 12px;
-    }
+    .name { margin: 0; font-size: 15px; font-weight: 900; line-height: 1.2; letter-spacing: -.01em; }
+    .addr { margin-top: 4px; font-size: 12px; color: var(--muted); }
 
     .badges {
       display: flex;
@@ -458,21 +456,22 @@
       border-radius: 999px;
       padding: 5px 8px;
       font-size: 11px;
-      font-weight: 800;
+      font-weight: 900;
       border: 1px solid transparent;
       white-space: nowrap;
     }
-    .type-clinic { background: color-mix(in srgb, var(--primary) 16%, transparent); color: var(--primary); border-color: color-mix(in srgb, var(--primary) 30%, transparent); }
+
+    .type-clinic { background: color-mix(in srgb, var(--primary) 16%, transparent); color: var(--primary); border-color: color-mix(in srgb, var(--primary) 35%, transparent); }
     .type-hospital { background: color-mix(in srgb, var(--purple) 18%, transparent); color: var(--purple); border-color: color-mix(in srgb, var(--purple) 35%, transparent); }
-    .type-er { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 30%, transparent); }
+    .type-er { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 35%, transparent); }
 
-    .wait-good { background: color-mix(in srgb, var(--success) 14%, transparent); color: var(--success); border-color: color-mix(in srgb, var(--success) 28%, transparent); }
-    .wait-warn { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); border-color: color-mix(in srgb, var(--warning) 34%, transparent); }
-    .wait-bad { background: color-mix(in srgb, var(--danger) 15%, transparent); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 34%, transparent); }
+    .wait-good { background: color-mix(in srgb, #16a34a 16%, transparent); color: #16a34a; border-color: color-mix(in srgb, #16a34a 34%, transparent); }
+    .wait-warn { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); border-color: color-mix(in srgb, var(--warning) 36%, transparent); }
+    .wait-bad  { background: color-mix(in srgb, var(--danger) 16%, transparent); color: var(--danger); border-color: color-mix(in srgb, var(--danger) 36%, transparent); }
 
-    .open { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 35%, transparent); }
-    .closing { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); border-color: color-mix(in srgb, var(--warning) 35%, transparent); }
-    .closed { background: color-mix(in srgb, var(--muted) 18%, transparent); color: var(--muted); border-color: color-mix(in srgb, var(--muted) 35%, transparent); }
+    .open   { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 36%, transparent); }
+    .closing{ background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); border-color: color-mix(in srgb, var(--warning) 36%, transparent); }
+    .closed { background: color-mix(in srgb, var(--muted) 20%, transparent); color: var(--muted); border-color: color-mix(in srgb, var(--muted) 36%, transparent); }
 
     .meta {
       margin-top: 8px;
@@ -482,12 +481,12 @@
     }
     .pill {
       border: 1px solid var(--line);
-      background: var(--card-2);
       border-radius: 999px;
+      background: var(--card-soft);
+      color: color-mix(in srgb, var(--text) 84%, var(--muted));
       padding: 5px 8px;
       font-size: 11px;
-      font-weight: 700;
-      color: color-mix(in srgb, var(--text) 82%, var(--muted));
+      font-weight: 800;
     }
 
     .actions {
@@ -497,1107 +496,901 @@
       flex-wrap: wrap;
     }
 
-    .map-panel {
-      background: var(--map-panel-bg);
-      position: relative;
-      min-height: 700px;
-    }
-    #map {
-      width: 100%;
-      height: 700px;
-      border-radius: 18px;
-    }
+    .map-wrap { position: relative; min-height: 720px; }
+    #map { width: 100%; height: 720px; border-radius: 18px; }
+
     .map-hud {
       position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 700;
-      display: flex;
-      gap: 7px;
-      flex-wrap: wrap;
+      top: 10px; left: 10px; z-index: 800;
+      display: flex; gap: 7px; flex-wrap: wrap;
       pointer-events: none;
     }
     .hud {
-      pointer-events: none;
-      background: color-mix(in srgb, var(--card) 82%, transparent);
       border: 1px solid var(--line);
       border-radius: 999px;
+      background: color-mix(in srgb, var(--card) 84%, transparent);
+      color: var(--muted);
       padding: 6px 9px;
       font-size: 11px;
-      color: var(--muted);
+      font-weight: 700;
       box-shadow: 0 8px 20px rgba(0,0,0,.15);
     }
+
     .map-tools {
       position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 700;
+      top: 10px; right: 10px; z-index: 800;
+      display: flex; flex-direction: column; gap: 7px;
+    }
+
+    .drawer {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      width: min(420px, 94vw);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: color-mix(in srgb, var(--card) 94%, transparent);
+      box-shadow: 0 22px 55px rgba(0,0,0,.32);
+      z-index: 2600;
+      overflow: hidden;
+    }
+    .drawer-head {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
       display: flex;
-      flex-direction: column;
-      gap: 7px;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .drawer-head h4 { margin: 0; font-size: 14px; letter-spacing: -.01em; }
+    .drawer-body {
+      max-height: 280px;
+      overflow: auto;
+      padding: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .cmp-item {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card-soft);
+      padding: 8px;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+    .cmp-title {
+      font-weight: 900;
+      font-size: 13px;
+      margin-bottom: 5px;
     }
 
     .toast {
       position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 16px;
+      left: 50%; transform: translateX(-50%);
+      bottom: 14px;
       z-index: 3000;
-      border-radius: 12px;
       border: 1px solid var(--line);
-      background: color-mix(in srgb, var(--card) 90%, transparent);
+      background: color-mix(in srgb, var(--card) 92%, transparent);
       color: var(--text);
+      border-radius: 12px;
       padding: 9px 12px;
       font-size: 13px;
-      font-weight: 700;
-      box-shadow: 0 16px 35px rgba(0,0,0,.25);
+      font-weight: 800;
+      box-shadow: 0 16px 36px rgba(0,0,0,.25);
       display: none;
-      max-width: min(92vw, 900px);
+      max-width: min(92vw, 860px);
     }
 
     footer {
-      margin: 14px 0 20px;
+      margin: 12px 0 22px;
       text-align: center;
       color: var(--muted);
       font-size: 12px;
     }
 
     @media (max-width: 1240px) {
-      .filter-grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
+      .grid { grid-template-columns: repeat(4, minmax(0,1fr)); }
       .workspace { grid-template-columns: 1fr; min-height: unset; }
       .results-list { height: auto; max-height: none; }
-      .map-panel, #map { min-height: 520px; height: 520px; }
+      .map-wrap, #map { min-height: 530px; height: 530px; }
     }
 
     @media (max-width: 860px) {
       .search-row { grid-template-columns: 1fr 1fr; }
-      .filter-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-      .top-actions { width: 100%; }
+      .grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
     }
 
     @media (max-width: 560px) {
       .search-row { grid-template-columns: 1fr; }
-      .filter-grid { grid-template-columns: 1fr; }
-      .brand h1 { font-size: 16px; }
-      .hero { padding: 14px; }
+      .grid { grid-template-columns: 1fr; }
     }
 
-    /* Leaflet tune */
     .leaflet-control-attribution {
-      background: color-mix(in srgb, var(--card) 78%, transparent) !important;
+      background: color-mix(in srgb, var(--card) 84%, transparent) !important;
       color: var(--muted) !important;
-      border-radius: 9px;
       border: 1px solid var(--line);
+      border-radius: 8px;
       margin: 0 8px 8px 0 !important;
     }
-    .leaflet-control-attribution a {
-      color: var(--primary) !important;
-    }
+    .leaflet-control-attribution a { color: var(--primary) !important; }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="container topbar-inner">
-      <div class="brand">
-        <div class="logo">+</div>
-        <div>
-          <h1>CareFinder Pro</h1>
-          <small>Clinics • Hospitals • ER wait times</small>
-        </div>
-      </div>
-      <div class="top-actions">
-        <button class="btn" id="themeBtn">🌙 Dark mode</button>
-        <button class="btn primary" id="useLocationBtn">📍 Use my location</button>
-        <button class="btn" id="fitBtn">🗺️ Fit results</button>
-        <button class="btn danger" id="resetBtn">Reset</button>
+<header class="topbar">
+  <div class="container topbar-inner">
+    <div class="brand">
+      <div class="logo">+</div>
+      <div>
+        <h1>PulseCare Finder</h1>
+        <small>Clinics, Hospitals, ER wait options</small>
       </div>
     </div>
-  </header>
 
-  <main class="container">
-    <section class="hero">
-      <h2>Find the best care option faster</h2>
-      <p>
-        Search by address, compare clinics and hospitals, view ER-focused wait estimates, switch map styles, and filter by the care type you need right now.
-      </p>
-    </section>
+    <div class="top-actions">
+      <button class="btn" id="themeBtn">Theme: Auto</button>
+      <button class="btn toggle" id="erQuickBtn">ER Quick Mode</button>
+      <button class="btn primary" id="useLocationBtn">Use my location</button>
+      <button class="btn" id="fitBtn">Fit results</button>
+      <button class="btn danger" id="resetBtn">Reset</button>
+    </div>
+  </div>
+</header>
 
-    <section class="controls">
-      <div class="search-row">
-        <div class="input-wrap">
-          <svg class="search-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.9"/>
-            <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-          </svg>
-          <input id="searchInput" class="search" placeholder="Search address or city (e.g., Oshawa, ON or 1 Hospital Ct, Oshawa)" />
-          <div id="suggestBox" class="suggest"></div>
-        </div>
+<main class="container">
+  <section class="hero">
+    <h2>Find the right care option fast</h2>
+    <p>
+      Compare clinics and hospitals by wait time, distance, open status, and ER capability.
+      Switch map styles, save favorites, and compare top options side-by-side.
+    </p>
+    <div class="urgent-banner" id="urgentBanner">If this is a life-threatening emergency, call 911 immediately.</div>
+  </section>
 
-        <button class="btn primary" id="searchBtn">Search</button>
-        <button class="btn" id="centerBtn">Center map</button>
-        <button class="btn" id="favOnlyBtn">☆ Favorites only: OFF</button>
+  <section class="controls">
+    <div class="search-row">
+      <div class="input-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none">
+          <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.9"/>
+          <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+        </svg>
+        <input id="searchInput" class="search" placeholder="Search address or city (e.g., Oshawa, ON)" />
+        <div id="suggestBox" class="suggest"></div>
+      </div>
+      <button class="btn primary" id="searchBtn">Search</button>
+      <button class="btn" id="centerBtn">Center map</button>
+      <button class="btn" id="favOnlyBtn">Favorites only: OFF</button>
+    </div>
+
+    <div class="grid">
+      <div class="field">
+        <label>Sort</label>
+        <select id="sortSelect">
+          <option value="best">Best overall</option>
+          <option value="wait">Shortest wait</option>
+          <option value="distance">Closest</option>
+          <option value="rating">Highest rating</option>
+          <option value="erwait">ER shortest</option>
+        </select>
       </div>
 
-      <div class="filter-grid">
-        <div class="field">
-          <label>Sort</label>
-          <select id="sortSelect">
-            <option value="best">Best overall</option>
-            <option value="wait">Shortest wait</option>
-            <option value="distance">Closest</option>
-            <option value="rating">Highest rating</option>
-            <option value="erwait">ER shortest</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Facility type</label>
-          <select id="typeSelect">
-            <option value="all">All</option>
-            <option value="clinic">Clinics</option>
-            <option value="hospital">Hospitals</option>
-            <option value="er">ER-capable only</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Open status</label>
-          <select id="openSelect">
-            <option value="any">Any</option>
-            <option value="open">Open now</option>
-            <option value="closing">Closing soon</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Map style</label>
-          <select id="mapStyleSelect">
-            <option value="osm">Street (OSM)</option>
-            <option value="cartoLight">Light</option>
-            <option value="cartoDark">Dark</option>
-            <option value="hot">Terrain-like</option>
-            <option value="esriSat">Satellite-like</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Max distance</label>
-          <input id="distRange" type="range" min="1" max="40" value="15" />
-          <div class="smallrow"><span>1</span><span id="distLabel">15 km</span><span>40</span></div>
-        </div>
-
-        <div class="field">
-          <label>Max wait</label>
-          <input id="waitRange" type="range" min="0" max="300" value="150" />
-          <div class="smallrow"><span>0</span><span id="waitLabel">150 min</span><span>300</span></div>
-        </div>
-
-        <div class="field">
-          <label>ER only filter</label>
-          <select id="erOnlySelect">
-            <option value="off">Off</option>
-            <option value="on">ER departments only</option>
-            <option value="peds">Pediatric ER only</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Area</label>
-          <div id="areaText" style="font-size:13px;font-weight:800;line-height:1.3;">Toronto, ON</div>
-        </div>
+      <div class="field">
+        <label>Facility Type</label>
+        <select id="typeSelect">
+          <option value="all">All</option>
+          <option value="clinic">Clinic</option>
+          <option value="hospital">Hospital</option>
+          <option value="er">ER-capable</option>
+        </select>
       </div>
 
-      <div class="chips-wrap" id="serviceChips"></div>
+      <div class="field">
+        <label>Open Status</label>
+        <select id="openSelect">
+          <option value="any">Any</option>
+          <option value="open">Open now</option>
+          <option value="closing">Closing soon</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Map Style</label>
+        <select id="mapStyleSelect">
+          <option value="osm">Street</option>
+          <option value="cartoLight">Light</option>
+          <option value="cartoDark">Dark</option>
+          <option value="esriSat">Satellite</option>
+          <option value="hot">Humanitarian</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Max Distance</label>
+        <input type="range" id="distRange" min="1" max="40" value="15"/>
+        <div class="smallrow"><span>1</span><span id="distLabel">15 km</span><span>40</span></div>
+      </div>
+
+      <div class="field">
+        <label>Max Wait</label>
+        <input type="range" id="waitRange" min="0" max="300" value="150"/>
+        <div class="smallrow"><span>0</span><span id="waitLabel">150 min</span><span>300</span></div>
+      </div>
+
+      <div class="field">
+        <label>ER Filter</label>
+        <select id="erOnlySelect">
+          <option value="off">Off</option>
+          <option value="on">ER only</option>
+          <option value="peds">Pediatric ER only</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Area</label>
+        <div id="areaText" style="font-size:13px;font-weight:900;line-height:1.3;">Toronto, ON</div>
+      </div>
+    </div>
+
+    <div class="chips" id="serviceChips"></div>
+  </section>
+
+  <section class="workspace">
+    <section class="panel">
+      <div class="results-head">
+        <div>
+          <h3>Nearby care options</h3>
+          <div class="sub">Smart ranking by distance, wait, open status, and quality</div>
+        </div>
+        <div class="stats">
+          <div class="stat"><div class="k">Results</div><div class="v" id="countStat">0</div></div>
+          <div class="stat"><div class="k">Best match</div><div class="v" id="bestStat">—</div></div>
+          <div class="stat"><div class="k">Avg wait</div><div class="v" id="avgStat">—</div></div>
+        </div>
+      </div>
+      <div class="results-list" id="resultsList"></div>
     </section>
 
-    <section class="workspace">
-      <section class="panel">
-        <div class="results-head">
-          <div>
-            <h3>Nearby care options</h3>
-            <div class="sub">Smart scoring based on wait time, distance, open status, and rating</div>
-          </div>
-          <div class="stats">
-            <div class="stat">
-              <div class="k">Results</div>
-              <div class="v" id="countStat">0</div>
-            </div>
-            <div class="stat">
-              <div class="k">Best match</div>
-              <div class="v" id="bestStat">—</div>
-            </div>
-            <div class="stat">
-              <div class="k">Avg wait</div>
-              <div class="v" id="avgStat">—</div>
-            </div>
-          </div>
-        </div>
-        <div id="resultsList" class="results-list"></div>
-      </section>
-
-      <section class="panel map-panel">
-        <div class="map-hud">
-          <div class="hud">Tip: Click card to highlight on map</div>
-          <div class="hud">Wait values are estimates unless linked to live feeds</div>
-        </div>
-        <div class="map-tools">
-          <button class="btn" id="zoomResultsBtn">Zoom results</button>
-        </div>
-        <div id="map"></div>
-      </section>
+    <section class="panel map-wrap">
+      <div class="map-hud">
+        <div class="hud">Tip: click any card to highlight it on map</div>
+        <div class="hud">Wait values are estimates unless connected to live feeds</div>
+      </div>
+      <div class="map-tools">
+        <button class="btn" id="zoomResultsBtn">Zoom results</button>
+      </div>
+      <div id="map"></div>
     </section>
+  </section>
 
-    <footer>
-      © 2026 Athir Global Partners · For emergencies call 911 immediately.
-    </footer>
-  </main>
+  <footer>© 2026 Athir Global Partners · For emergencies, call 911.</footer>
+</main>
 
-  <div id="toast" class="toast"></div>
+<div class="drawer" id="compareDrawer" style="display:none;">
+  <div class="drawer-head">
+    <h4>Compare shortlist</h4>
+    <button class="btn" id="clearCompareBtn">Clear</button>
+  </div>
+  <div class="drawer-body" id="compareBody"></div>
+</div>
 
-  <script>
-    // ------------------------------
-    // Utility helpers
-    // ------------------------------
-    const $ = (s) => document.querySelector(s);
-    const clamp = (n,a,b) => Math.max(a, Math.min(b, n));
+<div class="toast" id="toast"></div>
 
-    function showToast(msg) {
-      const t = $("#toast");
-      t.textContent = msg;
-      t.style.display = "block";
-      clearTimeout(showToast._timer);
-      showToast._timer = setTimeout(() => t.style.display = "none", 2800);
-    }
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const clamp = (n,a,b) => Math.max(a, Math.min(b, n));
 
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, s => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-      }[s]));
-    }
+  function showToast(msg) {
+    const t = $("#toast");
+    t.textContent = msg;
+    t.style.display = "block";
+    clearTimeout(showToast._timer);
+    showToast._timer = setTimeout(() => t.style.display = "none", 2500);
+  }
 
-    function kmFmt(km) {
-      return km < 1 ? `${Math.round(km*1000)} m` : `${km.toFixed(km<10?1:0)} km`;
-    }
+  function esc(x){ return String(x).replace(/[&<>"']/g, s => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[s])); }
+  function kmFmt(km){ return km < 1 ? `${Math.round(km*1000)} m` : `${km.toFixed(km<10?1:0)} km`; }
 
-    function minutesAgo(iso) {
-      return (Date.now() - new Date(iso).getTime()) / 60000;
-    }
+  function haversine(lat1, lon1, lat2, lon2){
+    const R = 6371;
+    const dLat = (lat2-lat1)*Math.PI/180;
+    const dLon = (lon2-lon1)*Math.PI/180;
+    const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+    return 2*R*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
 
-    function timeAgo(iso) {
-      const m = minutesAgo(iso);
-      if (m < 1) return "just now";
-      if (m < 60) return `${Math.round(m)}m ago`;
-      const h = m/60;
-      if (h < 24) return `${Math.round(h)}h ago`;
-      return `${Math.round(h/24)}d ago`;
-    }
+  const DAY = ["sun","mon","tue","wed","thu","fri","sat"];
+  function parseHM(hm){ const [h,m] = hm.split(":").map(Number); return h*60 + m; }
+  function openState(hours){
+    const now = new Date();
+    const key = DAY[now.getDay()];
+    const range = hours?.[key] || null;
+    if(!range) return {state:"closed", text:"Closed"};
+    const cur = now.getHours()*60 + now.getMinutes();
+    const o = parseHM(range[0]), c = parseHM(range[1]);
+    if(cur < o || cur >= c) return {state:"closed", text:"Closed"};
+    const left = c - cur;
+    if(left <= 60) return {state:"closing", text:`Closing in ${left}m`};
+    return {state:"open", text:"Open now"};
+  }
+  function waitClass(w){ if(w <= 25) return "wait-good"; if(w <= 60) return "wait-warn"; return "wait-bad"; }
+  function openClass(s){ return s==="open" ? "open" : s==="closing" ? "closing" : "closed"; }
 
-    // haversine km
-    function distanceKm(lat1, lon1, lat2, lon2) {
-      const R = 6371;
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a =
-        Math.sin(dLat/2)**2 +
-        Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-      return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    }
+  const FACILITIES = [
+    {id:"f1", type:"clinic", name:"Front & Spadina Walk-In Clinic", address:"Front St W & Spadina Ave, Toronto, ON", lat:43.64262, lng:-79.38705, rating:4.4, baseWait:36, erCapable:false, pediatricER:false, services:["Walk-in","Family Doctor","Vaccines","Bloodwork"], updated:new Date(Date.now()-42*60000).toISOString(), hours:{mon:["09:00","19:00"],tue:["09:00","19:00"],wed:["09:00","19:00"],thu:["09:00","19:00"],fri:["09:00","18:00"],sat:["10:00","16:00"],sun:null}},
+    {id:"f2", type:"hospital", name:"Toronto General Hospital", address:"200 Elizabeth St, Toronto, ON", lat:43.6581, lng:-79.3891, rating:4.5, baseWait:94, erCapable:true, pediatricER:false, services:["Emergency","Imaging","Surgery","ICU"], updated:new Date(Date.now()-18*60000).toISOString(), hours:{mon:["00:00","23:59"],tue:["00:00","23:59"],wed:["00:00","23:59"],thu:["00:00","23:59"],fri:["00:00","23:59"],sat:["00:00","23:59"],sun:["00:00","23:59"]}},
+    {id:"f3", type:"hospital", name:"Mount Sinai Hospital", address:"600 University Ave, Toronto, ON", lat:43.6572, lng:-79.3902, rating:4.3, baseWait:87, erCapable:true, pediatricER:false, services:["Emergency","Imaging","Lab","Surgery"], updated:new Date(Date.now()-25*60000).toISOString(), hours:{mon:["00:00","23:59"],tue:["00:00","23:59"],wed:["00:00","23:59"],thu:["00:00","23:59"],fri:["00:00","23:59"],sat:["00:00","23:59"],sun:["00:00","23:59"]}},
+    {id:"f4", type:"hospital", name:"Lakeridge Health Oshawa (ER)", address:"1 Hospital Ct, Oshawa, ON", lat:43.9085, lng:-78.8617, rating:4.0, baseWait:120, erCapable:true, pediatricER:false, services:["Emergency","Trauma","Imaging","Inpatient"], updated:new Date(Date.now()-14*60000).toISOString(), hours:{mon:["00:00","23:59"],tue:["00:00","23:59"],wed:["00:00","23:59"],thu:["00:00","23:59"],fri:["00:00","23:59"],sat:["00:00","23:59"],sun:["00:00","23:59"]}},
+    {id:"f5", type:"hospital", name:"SickKids Hospital (Pediatric ER)", address:"555 University Ave, Toronto, ON", lat:43.6575, lng:-79.3888, rating:4.7, baseWait:78, erCapable:true, pediatricER:true, services:["Pediatric ER","Imaging","Surgery","ICU"], updated:new Date(Date.now()-11*60000).toISOString(), hours:{mon:["00:00","23:59"],tue:["00:00","23:59"],wed:["00:00","23:59"],thu:["00:00","23:59"],fri:["00:00","23:59"],sat:["00:00","23:59"],sun:["00:00","23:59"]}},
+    {id:"f6", type:"clinic", name:"Queen West Medical Walk-In", address:"Queen St W, Toronto, ON", lat:43.64842, lng:-79.40415, rating:4.1, baseWait:52, erCapable:false, pediatricER:false, services:["Walk-in","Prescriptions","Minor Injuries","STD Testing"], updated:new Date(Date.now()-83*60000).toISOString(), hours:{mon:["10:00","20:00"],tue:["10:00","20:00"],wed:["10:00","20:00"],thu:["10:00","20:00"],fri:["10:00","19:00"],sat:["10:00","17:00"],sun:["11:00","16:00"]}},
+    {id:"f7", type:"clinic", name:"Bloor-Yonge Diagnostics & Clinic", address:"Bloor St E, Toronto, ON", lat:43.6717, lng:-79.3867, rating:4.0, baseWait:62, erCapable:false, pediatricER:false, services:["Walk-in","Bloodwork","Vaccines","Forms"], updated:new Date(Date.now()-57*60000).toISOString(), hours:{mon:["08:30","18:30"],tue:["08:30","18:30"],wed:["08:30","18:30"],thu:["08:30","18:30"],fri:["08:30","18:00"],sat:["09:00","14:00"],sun:null}}
+  ];
 
-    // Hours
-    const DAY = ["sun","mon","tue","wed","thu","fri","sat"];
-    function parseHM(hm) {
-      const [h,m] = hm.split(":").map(Number);
-      return h*60+m;
-    }
-    function getOpenState(hours) {
-      const now = new Date();
-      const key = DAY[now.getDay()];
-      const range = hours?.[key] || null;
-      if (!range) return { state:"closed", text:"Closed", closeIn:null };
-      const [open, close] = range;
-      const cur = now.getHours()*60 + now.getMinutes();
-      const o = parseHM(open), c = parseHM(close);
-      if (cur < o || cur >= c) return { state:"closed", text:"Closed", closeIn:null };
-      const left = c-cur;
-      if (left <= 60) return { state:"closing", text:`Closing in ${left}m`, closeIn:left };
-      return { state:"open", text:"Open now", closeIn:left };
-    }
+  const ALL_SERVICES = ["Emergency","Pediatric ER","Walk-in","Family Doctor","Vaccines","Bloodwork","Imaging","Lab","Minor Injuries","Prescriptions","Surgery","ICU"];
 
-    function waitBadgeClass(mins){
-      if (mins <= 25) return "wait-good";
-      if (mins <= 60) return "wait-warn";
-      return "wait-bad";
-    }
+  const LS_THEME = "pulsecare_theme_v1";
+  const LS_FAV = "pulsecare_favorites_v1";
 
-    function openBadgeClass(state){
-      if (state === "open") return "open";
-      if (state === "closing") return "closing";
-      return "closed";
-    }
+  const state = {
+    center: {lat:43.6532, lng:-79.3832, label:"Toronto, ON"},
+    sortBy: "best",
+    type: "all",
+    open: "any",
+    mapStyle: "osm",
+    maxDist: 15,
+    maxWait: 150,
+    erOnly: "off",
+    erQuick: false,
+    favOnly: false,
+    selectedServices: new Set(),
+    highlight: null,
+    favorites: new Set(JSON.parse(localStorage.getItem(LS_FAV) || "[]")),
+    compare: new Set()
+  };
 
-    // ------------------------------
-    // Data model
-    // NOTE: demo data now includes clinics, hospitals, and ER-capable facilities.
-    // ------------------------------
-    const FACILITIES = [
-      {
-        id:"f1",
-        type:"clinic",
-        name:"Front & Spadina Walk-In Clinic",
-        address:"Front St W & Spadina Ave, Toronto, ON",
-        lat:43.64262, lng:-79.38705,
-        rating:4.4,
-        baseWait:36,
-        erCapable:false,
-        pediatricER:false,
-        services:["Walk-in","Family Doctor","Vaccines","Bloodwork"],
-        lastUpdated:new Date(Date.now()-42*60000).toISOString(),
-        hours:{
-          mon:["09:00","19:00"], tue:["09:00","19:00"], wed:["09:00","19:00"], thu:["09:00","19:00"], fri:["09:00","18:00"], sat:["10:00","16:00"], sun:null
-        }
-      },
-      {
-        id:"f2",
-        type:"hospital",
-        name:"Toronto General Hospital",
-        address:"200 Elizabeth St, Toronto, ON",
-        lat:43.6581, lng:-79.3891,
-        rating:4.5,
-        baseWait:95,
-        erCapable:true,
-        pediatricER:false,
-        services:["Emergency","Imaging","Surgery","Cardiology","ICU"],
-        lastUpdated:new Date(Date.now()-18*60000).toISOString(),
-        hours:{
-          mon:["00:00","23:59"], tue:["00:00","23:59"], wed:["00:00","23:59"], thu:["00:00","23:59"], fri:["00:00","23:59"], sat:["00:00","23:59"], sun:["00:00","23:59"]
-        }
-      },
-      {
-        id:"f3",
-        type:"hospital",
-        name:"Mount Sinai Hospital",
-        address:"600 University Ave, Toronto, ON",
-        lat:43.6572, lng:-79.3902,
-        rating:4.3,
-        baseWait:88,
-        erCapable:true,
-        pediatricER:false,
-        services:["Emergency","Urgent Care","Imaging","Lab","Surgery"],
-        lastUpdated:new Date(Date.now()-25*60000).toISOString(),
-        hours:{
-          mon:["00:00","23:59"], tue:["00:00","23:59"], wed:["00:00","23:59"], thu:["00:00","23:59"], fri:["00:00","23:59"], sat:["00:00","23:59"], sun:["00:00","23:59"]
-        }
-      },
-      {
-        id:"f4",
-        type:"hospital",
-        name:"Lakeridge Health Oshawa (ER)",
-        address:"1 Hospital Ct, Oshawa, ON",
-        lat:43.9085, lng:-78.8617,
-        rating:4.0,
-        baseWait:120,
-        erCapable:true,
-        pediatricER:false,
-        services:["Emergency","Trauma","Imaging","Inpatient","Lab"],
-        lastUpdated:new Date(Date.now()-14*60000).toISOString(),
-        hours:{
-          mon:["00:00","23:59"], tue:["00:00","23:59"], wed:["00:00","23:59"], thu:["00:00","23:59"], fri:["00:00","23:59"], sat:["00:00","23:59"], sun:["00:00","23:59"]
-        }
-      },
-      {
-        id:"f5",
-        type:"hospital",
-        name:"SickKids Hospital (Pediatric ER)",
-        address:"555 University Ave, Toronto, ON",
-        lat:43.6575, lng:-79.3888,
-        rating:4.7,
-        baseWait:78,
-        erCapable:true,
-        pediatricER:true,
-        services:["Pediatric ER","Pediatrics","Imaging","Surgery","ICU"],
-        lastUpdated:new Date(Date.now()-11*60000).toISOString(),
-        hours:{
-          mon:["00:00","23:59"], tue:["00:00","23:59"], wed:["00:00","23:59"], thu:["00:00","23:59"], fri:["00:00","23:59"], sat:["00:00","23:59"], sun:["00:00","23:59"]
-        }
-      },
-      {
-        id:"f6",
-        type:"clinic",
-        name:"Queen West Medical Walk-In",
-        address:"Queen St W, Toronto, ON",
-        lat:43.64842, lng:-79.40415,
-        rating:4.1,
-        baseWait:52,
-        erCapable:false,
-        pediatricER:false,
-        services:["Walk-in","STD Testing","Prescriptions","Minor Injuries"],
-        lastUpdated:new Date(Date.now()-83*60000).toISOString(),
-        hours:{
-          mon:["10:00","20:00"], tue:["10:00","20:00"], wed:["10:00","20:00"], thu:["10:00","20:00"], fri:["10:00","19:00"], sat:["10:00","17:00"], sun:["11:00","16:00"]
-        }
-      },
-      {
-        id:"f7",
-        type:"clinic",
-        name:"Bloor-Yonge Diagnostics & Clinic",
-        address:"Bloor St E, Toronto, ON",
-        lat:43.6717, lng:-79.3867,
-        rating:4.0,
-        baseWait:62,
-        erCapable:false,
-        pediatricER:false,
-        services:["Walk-in","Bloodwork","Vaccines","Forms"],
-        lastUpdated:new Date(Date.now()-57*60000).toISOString(),
-        hours:{
-          mon:["08:30","18:30"], tue:["08:30","18:30"], wed:["08:30","18:30"], thu:["08:30","18:30"], fri:["08:30","18:00"], sat:["09:00","14:00"], sun:null
-        }
-      }
-    ];
+  // Theme
+  function resolveAutoTheme(){
+    return window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  function applyTheme(mode){
+    const real = mode === "auto" ? resolveAutoTheme() : mode;
+    document.documentElement.setAttribute("data-theme", real);
+    $("#themeBtn").textContent = `Theme: ${mode[0].toUpperCase()+mode.slice(1)}`;
+  }
+  function cycleTheme(){
+    const cur = localStorage.getItem(LS_THEME) || "auto";
+    const next = cur === "auto" ? "light" : cur === "light" ? "dark" : "auto";
+    localStorage.setItem(LS_THEME, next);
+    applyTheme(next);
+    showToast(`Theme set to ${next}`);
+  }
 
-    const ALL_SERVICES = [
-      "Emergency","Pediatric ER","Walk-in","Family Doctor","Vaccines","Bloodwork","Imaging","Lab","Minor Injuries","Prescriptions","Surgery","ICU"
-    ];
+  // Map
+  const map = L.map("map");
+  const tiles = {
+    osm: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19, attribution:"&copy; OpenStreetMap"}),
+    cartoLight: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {maxZoom:20, attribution:"&copy; OpenStreetMap &copy; CARTO"}),
+    cartoDark: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {maxZoom:20, attribution:"&copy; OpenStreetMap &copy; CARTO"}),
+    esriSat: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {maxZoom:19, attribution:"Tiles &copy; Esri"}),
+    hot: L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {maxZoom:20, attribution:"&copy; OpenStreetMap, HOT"})
+  };
+  let currentTile = tiles.osm;
+  currentTile.addTo(map);
+  map.setView([state.center.lat, state.center.lng], 12);
 
-    // local storage keys
-    const LS_THEME = "carefinder_theme_v1";
-    const LS_FAVS = "carefinder_favs_v1";
+  const markerLayer = L.layerGroup().addTo(map);
+  let centerMarker = null;
+  let highlightCircle = null;
+  let rendered = [];
 
-    const state = {
-      center: { lat: 43.6532, lng: -79.3832, label: "Toronto, ON" },
-      sortBy: "best",
-      typeFilter: "all",
-      openFilter: "any",
-      mapStyle: "osm",
-      maxDist: 15,
-      maxWait: 150,
-      erOnly: "off", // off | on | peds
-      selectedServices: new Set(),
-      highlightId: null,
-      favoritesOnly: false,
-      favorites: new Set(JSON.parse(localStorage.getItem(LS_FAVS) || "[]"))
-    };
-
-    // ------------------------------
-    // Theme
-    // ------------------------------
-    function initTheme() {
-      const saved = localStorage.getItem(LS_THEME);
-      const preferDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const theme = saved || (preferDark ? "dark" : "light");
-      document.documentElement.setAttribute("data-theme", theme);
-      updateThemeButton();
-    }
-
-    function toggleTheme() {
-      const cur = document.documentElement.getAttribute("data-theme") || "light";
-      const next = cur === "light" ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", next);
-      localStorage.setItem(LS_THEME, next);
-      updateThemeButton();
-      // Adjust map style if currently set to carto light/dark auto-preference optional
-      if (state.mapStyle === "cartoDark" && next === "light") {
-        // keep user choice
-      }
-      showToast(`Switched to ${next} mode`);
-    }
-
-    function updateThemeButton() {
-      const cur = document.documentElement.getAttribute("data-theme");
-      $("#themeBtn").textContent = cur === "dark" ? "☀️ Light mode" : "🌙 Dark mode";
-    }
-
-    // ------------------------------
-    // Map setup with multiple styles
-    // ------------------------------
-    const map = L.map("map", { zoomControl: true });
-    let centerMarker = null;
-    let highlightCircle = null;
-    const markersLayer = L.layerGroup().addTo(map);
-
-    const tileProviders = {
-      osm: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap"
-      }),
-      cartoLight: L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
-        maxZoom: 20,
-        attribution: "&copy; OpenStreetMap &copy; CARTO"
-      }),
-      cartoDark: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-        maxZoom: 20,
-        attribution: "&copy; OpenStreetMap &copy; CARTO"
-      }),
-      hot: L.tileLayer("https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png", {
-        maxZoom: 20,
-        attribution: "&copy; OpenStreetMap, HOT"
-      }),
-      esriSat: L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        {
-          maxZoom: 19,
-          attribution: "Tiles &copy; Esri"
-        }
-      )
-    };
-
-    let currentTile = tileProviders.osm;
+  function setMapStyle(k){
+    if(!tiles[k]) return;
+    if(currentTile) map.removeLayer(currentTile);
+    currentTile = tiles[k];
     currentTile.addTo(map);
-    map.setView([state.center.lat, state.center.lng], 12);
-
-    function setMapStyle(styleKey) {
-      if (!tileProviders[styleKey]) return;
-      if (currentTile) map.removeLayer(currentTile);
-      currentTile = tileProviders[styleKey];
-      currentTile.addTo(map);
-      state.mapStyle = styleKey;
-      showToast(`Map style: ${$("#mapStyleSelect").selectedOptions[0].textContent}`);
-    }
-
-    function setCenter(lat, lng, label) {
-      state.center = { lat, lng, label };
-      $("#areaText").textContent = label || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-      map.setView([lat, lng], 12, { animate: true });
-
-      if (centerMarker) centerMarker.remove();
-      centerMarker = L.circleMarker([lat, lng], {
-        radius: 7,
-        color: getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#2563eb",
-        fillColor: getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#2563eb",
-        fillOpacity: 0.26,
-        weight: 2
-      }).addTo(map);
-
-      refresh();
-    }
-
-    function fitResults(list) {
-      if (!list || !list.length) {
-        map.setView([state.center.lat, state.center.lng], 12, { animate: true });
-        return;
-      }
-      const bounds = L.latLngBounds(list.map(r => [r.lat, r.lng]));
-      map.fitBounds(bounds.pad(0.18), { animate: true });
-    }
-
-    // ------------------------------
-    // Wait estimate / scoring
-    // ------------------------------
-    function estimateWait(item) {
-      let base = Number(item.baseWait || 45);
-
-      // freshness penalty
-      const ageM = minutesAgo(item.lastUpdated);
-      base += clamp((ageM - 25)/7, 0, 30);
-
-      // peak curve
-      const h = new Date().getHours() + new Date().getMinutes()/60;
-      const peak = Math.exp(-Math.pow((h-11)/2.6,2))*16 + Math.exp(-Math.pow((h-18)/2.4,2))*13;
-      base += peak;
-
-      // hospitals tend to have ER fluctuations
-      if (item.erCapable) {
-        base += Math.exp(-Math.pow((h-20)/2.5,2))*9;
-      }
-
-      return clamp(base, 0, 300);
-    }
-
-    function computeRows() {
-      return FACILITIES.map(item => {
-        const dist = distanceKm(state.center.lat, state.center.lng, item.lat, item.lng);
-        const wait = estimateWait(item);
-        const open = getOpenState(item.hours);
-
-        const typePenalty = item.type === "clinic" ? 0 : 5;
-        const erBoost = item.erCapable ? -4 : 0;
-        const openPenalty = open.state === "open" ? -8 : (open.state === "closing" ? 2 : 14);
-        const score = dist*3.2 + wait*1.0 + (5-item.rating)*5 + typePenalty + openPenalty + erBoost;
-
-        return {
-          ...item,
-          _dist: dist,
-          _wait: wait,
-          _open: open,
-          _score: score,
-          _isFav: state.favorites.has(item.id)
-        };
-      });
-    }
-
-    // ------------------------------
-    // Filtering & sorting
-    // ------------------------------
-    function passesFilters(r) {
-      if (r._dist > state.maxDist) return false;
-      if (r._wait > state.maxWait) return false;
-
-      if (state.typeFilter === "clinic" && r.type !== "clinic") return false;
-      if (state.typeFilter === "hospital" && r.type !== "hospital") return false;
-      if (state.typeFilter === "er" && !r.erCapable) return false;
-
-      if (state.openFilter === "open" && !(r._open.state === "open" || r._open.state === "closing")) return false;
-      if (state.openFilter === "closing" && r._open.state !== "closing") return false;
-
-      if (state.erOnly === "on" && !r.erCapable) return false;
-      if (state.erOnly === "peds" && !r.pediatricER) return false;
-
-      if (state.favoritesOnly && !r._isFav) return false;
-
-      if (state.selectedServices.size) {
-        const set = new Set(r.services || []);
-        for (const s of state.selectedServices) {
-          if (!set.has(s)) return false;
-        }
-      }
-
-      return true;
-    }
-
-    function sortRows(rows) {
-      const arr = [...rows];
-      if (state.sortBy === "wait") arr.sort((a,b) => a._wait - b._wait);
-      else if (state.sortBy === "distance") arr.sort((a,b) => a._dist - b._dist);
-      else if (state.sortBy === "rating") arr.sort((a,b) => b.rating - a.rating);
-      else if (state.sortBy === "erwait") arr.sort((a,b) => {
-        const aw = a.erCapable ? a._wait : 9999;
-        const bw = b.erCapable ? b._wait : 9999;
-        return aw - bw;
-      });
-      else arr.sort((a,b) => a._score - b._score);
-      return arr;
-    }
-
-    // ------------------------------
-    // Render services chips
-    // ------------------------------
-    function renderServiceChips() {
-      const host = $("#serviceChips");
-      host.innerHTML = "";
-
-      ALL_SERVICES.forEach(s => {
-        const el = document.createElement("div");
-        el.className = "chip" + (state.selectedServices.has(s) ? " on" : "");
-        el.textContent = s;
-        el.addEventListener("click", () => {
-          if (state.selectedServices.has(s)) state.selectedServices.delete(s);
-          else state.selectedServices.add(s);
-          renderServiceChips();
-          refresh();
-        });
-        host.appendChild(el);
-      });
-    }
-
-    // ------------------------------
-    // Marker color rules
-    // ------------------------------
-    function markerColor(r) {
-      if (r.type === "hospital" && r.erCapable) return r._wait <= 45 ? "#ef4444" : (r._wait <= 90 ? "#f97316" : "#b91c1c");
-      if (r.type === "hospital") return "#7c3aed";
-      return r._wait <= 25 ? "#16a34a" : (r._wait <= 60 ? "#d97706" : "#dc2626");
-    }
-
-    let renderedRows = [];
-
-    function renderMap(rows) {
-      markersLayer.clearLayers();
-
-      rows.forEach(r => {
-        const color = markerColor(r);
-        const m = L.circleMarker([r.lat, r.lng], {
-          radius: state.highlightId === r.id ? 10 : 7,
-          color,
-          fillColor: color,
-          fillOpacity: 0.30,
-          weight: state.highlightId === r.id ? 3 : 2
-        }).addTo(markersLayer);
-
-        const typeLabel = r.type === "clinic" ? "Clinic" : "Hospital";
-        const erLine = r.erCapable ? `<div><b>ER wait:</b> ~${Math.round(r._wait)} min</div>` : "";
-        m.bindPopup(`
-          <div style="font-family:Inter,system-ui;min-width:230px;">
-            <div style="font-weight:900;margin-bottom:4px;">${escapeHtml(r.name)}</div>
-            <div style="font-size:12px;color:#64748b;margin-bottom:8px;">${escapeHtml(r.address)}</div>
-            <div style="font-size:12px;line-height:1.45;">
-              <div><b>Type:</b> ${typeLabel}${r.erCapable ? " + ER" : ""}</div>
-              <div><b>Distance:</b> ${kmFmt(r._dist)}</div>
-              <div><b>Status:</b> ${escapeHtml(r._open.text)}</div>
-              ${erLine}
-            </div>
-          </div>
-        `);
-
-        m.on("click", () => {
-          state.highlightId = r.id;
-          focusRow(r.id, false);
-        });
-      });
-    }
-
-    function favToggle(id) {
-      if (state.favorites.has(id)) state.favorites.delete(id);
-      else state.favorites.add(id);
-      localStorage.setItem(LS_FAVS, JSON.stringify(Array.from(state.favorites)));
-      refresh();
-    }
-
-    function renderList(rows) {
-      const host = $("#resultsList");
-      host.innerHTML = "";
-
-      $("#countStat").textContent = rows.length;
-      $("#bestStat").textContent = rows.length ? (rows[0].name.length > 14 ? rows[0].name.slice(0,14) + "…" : rows[0].name) : "—";
-      const avg = rows.length ? Math.round(rows.reduce((a,b) => a+b._wait, 0) / rows.length) : null;
-      $("#avgStat").textContent = avg === null ? "—" : `${avg}m`;
-
-      if (!rows.length) {
-        host.innerHTML = `
-          <div class="card">
-            <div class="name">No results match these filters</div>
-            <div class="addr">Try increasing max distance/wait, or change facility type filters.</div>
-          </div>
-        `;
-        return;
-      }
-
-      rows.forEach(r => {
-        const typeBadgeClass = r.type === "clinic" ? "type-clinic" : (r.erCapable ? "type-er" : "type-hospital");
-        const typeText = r.type === "clinic" ? "Clinic" : (r.erCapable ? "Hospital + ER" : "Hospital");
-
-        const card = document.createElement("article");
-        card.className = "card" + (state.highlightId === r.id ? " active" : "");
-
-        card.innerHTML = `
-          <div class="topline">
-            <div style="min-width:0;">
-              <h4 class="name">${escapeHtml(r.name)}</h4>
-              <div class="addr">${escapeHtml(r.address)}</div>
-            </div>
-            <div class="badges">
-              <span class="badge ${typeBadgeClass}">${typeText}</span>
-              <span class="badge ${waitBadgeClass(r._wait)}">Wait ~${Math.round(r._wait)}m</span>
-              <span class="badge ${openBadgeClass(r._open.state)}">${escapeHtml(r._open.text)}</span>
-            </div>
-          </div>
-
-          <div class="meta">
-            <span class="pill">Distance: ${kmFmt(r._dist)}</span>
-            <span class="pill">Rating: ${r.rating.toFixed(1)}</span>
-            <span class="pill">Updated: ${timeAgo(r.lastUpdated)}</span>
-            ${r.erCapable ? `<span class="pill">ER capable</span>` : ""}
-            ${r.pediatricER ? `<span class="pill">Pediatric ER</span>` : ""}
-          </div>
-
-          <div class="meta">
-            ${(r.services || []).slice(0,6).map(s => `<span class="pill">${escapeHtml(s)}</span>`).join("")}
-          </div>
-
-          <div class="actions">
-            <button class="btn" data-view="${r.id}">View on map</button>
-            <button class="btn primary" data-dir="${r.id}">Directions</button>
-            <button class="btn" data-fav="${r.id}">${r._isFav ? "★ Favorited" : "☆ Favorite"}</button>
-          </div>
-        `;
-
-        card.addEventListener("click", (e) => {
-          if (e.target.closest("button")) return;
-          focusRow(r.id, true);
-        });
-
-        host.appendChild(card);
-      });
-
-      host.querySelectorAll("[data-view]").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          focusRow(btn.getAttribute("data-view"), true);
-        });
-      });
-
-      host.querySelectorAll("[data-dir]").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          const id = btn.getAttribute("data-dir");
-          const row = renderedRows.find(x => x.id === id);
-          if (!row) return;
-          const origin = `${state.center.lat},${state.center.lng}`;
-          const dest = `${row.lat},${row.lng}`;
-          const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}&travelmode=driving`;
-          window.open(url, "_blank", "noopener,noreferrer");
-        });
-      });
-
-      host.querySelectorAll("[data-fav]").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          favToggle(btn.getAttribute("data-fav"));
-        });
-      });
-    }
-
-    function focusRow(id, openPopup) {
-      const row = renderedRows.find(x => x.id === id);
-      if (!row) return;
-      state.highlightId = id;
-
-      if (highlightCircle) highlightCircle.remove();
-      highlightCircle = L.circle([row.lat, row.lng], {
-        radius: 280,
-        color: getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#2563eb",
-        weight: 2,
-        fillColor: getComputedStyle(document.documentElement).getPropertyValue("--primary").trim() || "#2563eb",
-        fillOpacity: 0.06
-      }).addTo(map);
-
-      map.setView([row.lat, row.lng], 14, { animate: true });
-
-      if (openPopup) {
-        markersLayer.eachLayer(layer => {
-          const ll = layer.getLatLng && layer.getLatLng();
-          if (ll && Math.abs(ll.lat - row.lat) < 1e-6 && Math.abs(ll.lng - row.lng) < 1e-6) {
-            layer.openPopup();
-          }
-        });
-      }
-
-      renderMap(renderedRows);
-      renderList(renderedRows);
-    }
-
-    function refresh() {
-      const computed = computeRows().filter(passesFilters);
-      renderedRows = sortRows(computed);
-      renderMap(renderedRows);
-      renderList(renderedRows);
-      $("#distLabel").textContent = `${state.maxDist} km`;
-      $("#waitLabel").textContent = `${state.maxWait} min`;
-      $("#favOnlyBtn").textContent = state.favoritesOnly ? "★ Favorites only: ON" : "☆ Favorites only: OFF";
-    }
-
-    // ------------------------------
-    // Search with suggestions (Nominatim)
-    // ------------------------------
-    const searchInput = $("#searchInput");
-    const suggestBox = $("#suggestBox");
-    let suggestItems = [];
-    let activeSuggest = -1;
-    let debounceTimer = null;
-    let abortCtrl = null;
-    let lastFetchTime = 0;
-
-    function hideSuggest() {
-      suggestBox.style.display = "none";
-      suggestItems = [];
-      activeSuggest = -1;
-    }
-
-    function renderSuggest(items) {
-      suggestItems = items;
-      activeSuggest = -1;
-      if (!items.length) {
-        suggestBox.innerHTML = `<div class="s-item"><div class="s-title">No results</div><div class="s-sub">Try a more specific address</div></div>`;
-        suggestBox.style.display = "block";
-        return;
-      }
-
-      suggestBox.innerHTML = items.map((it, i) => {
-        const parts = (it.display_name || "").split(",");
-        const title = parts.slice(0,2).join(",").trim();
-        const sub = parts.slice(2).join(",").trim();
-        return `
-          <div class="s-item" data-i="${i}">
-            <div class="s-title">${escapeHtml(title)}</div>
-            <div class="s-sub">${escapeHtml(sub)}</div>
-          </div>
-        `;
-      }).join("");
-
-      suggestBox.style.display = "block";
-      suggestBox.querySelectorAll(".s-item[data-i]").forEach(el => {
-        el.addEventListener("click", () => {
-          chooseSuggestion(Number(el.getAttribute("data-i")));
-        });
-      });
-    }
-
-    async function geocodeQuery(q) {
-      const now = Date.now();
-      const wait = Math.max(0, 1000 - (now - lastFetchTime));
-      if (wait) await new Promise(r => setTimeout(r, wait));
-      lastFetchTime = Date.now();
-
-      if (abortCtrl) abortCtrl.abort();
-      abortCtrl = new AbortController();
-
-      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=7&accept-language=en&q=${encodeURIComponent(q)}`;
-      const res = await fetch(url, {
-        method: "GET",
-        signal: abortCtrl.signal,
-        headers: { "Accept": "application/json" }
-      });
-      if (!res.ok) throw new Error("Geocode failed");
-      return res.json();
-    }
-
-    function chooseSuggestion(i) {
-      const it = suggestItems[i];
-      if (!it) return;
-      const lat = Number(it.lat), lng = Number(it.lon);
-      const label = (it.display_name || "").split(",").slice(0,3).join(",").trim();
-      searchInput.value = it.display_name || "";
-      hideSuggest();
-      setCenter(lat, lng, label);
-      fitResults(renderedRows);
-    }
-
-    searchInput.addEventListener("input", () => {
-      const q = searchInput.value.trim();
-      if (q.length < 3) {
-        hideSuggest();
-        return;
-      }
-
-      clearTimeout(debounceTimer);
-      debounceTimer = setTimeout(async () => {
-        try {
-          const items = await geocodeQuery(q);
-          renderSuggest(items);
-        } catch (e) {
-          if (e.name !== "AbortError") {
-            showToast("Search temporarily unavailable.");
-          }
-        }
-      }, 300);
-    });
-
-    searchInput.addEventListener("keydown", async (e) => {
-      if (e.key === "Escape") {
-        hideSuggest();
-        return;
-      }
-
-      if (e.key === "ArrowDown") {
-        if (!suggestItems.length) return;
-        e.preventDefault();
-        activeSuggest = clamp(activeSuggest + 1, 0, suggestItems.length - 1);
-      } else if (e.key === "ArrowUp") {
-        if (!suggestItems.length) return;
-        e.preventDefault();
-        activeSuggest = clamp(activeSuggest - 1, 0, suggestItems.length - 1);
-      } else if (e.key === "Enter") {
-        if (activeSuggest >= 0 && suggestItems[activeSuggest]) {
-          e.preventDefault();
-          chooseSuggestion(activeSuggest);
-          return;
-        }
-      } else {
-        return;
-      }
-
-      suggestBox.querySelectorAll(".s-item[data-i]").forEach(el => el.classList.remove("active"));
-      const target = suggestBox.querySelector(`.s-item[data-i="${activeSuggest}"]`);
-      if (target) target.classList.add("active");
-    });
-
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest(".input-wrap")) hideSuggest();
-    });
-
-    $("#searchBtn").addEventListener("click", async () => {
-      const q = searchInput.value.trim();
-      if (q.length < 3) {
-        showToast("Enter at least 3 characters");
-        return;
-      }
-      try {
-        const items = await geocodeQuery(q);
-        if (!items.length) {
-          showToast("No address found");
-          return;
-        }
-        chooseSuggestion(0);
-      } catch {
-        showToast("Could not search address");
-      }
-    });
-
-    // ------------------------------
-    // Bind controls
-    // ------------------------------
-    $("#themeBtn").addEventListener("click", toggleTheme);
-
-    $("#useLocationBtn").addEventListener("click", () => {
-      if (!navigator.geolocation) {
-        showToast("Geolocation is not available on this device.");
-        return;
-      }
-      showToast("Getting your location...");
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          setCenter(lat, lng, "Your location");
-          fitResults(renderedRows);
-          showToast("Location updated");
-        },
-        () => showToast("Location access denied. Search manually instead."),
-        { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
-      );
-    });
-
-    $("#fitBtn").addEventListener("click", () => fitResults(renderedRows));
-    $("#zoomResultsBtn").addEventListener("click", () => fitResults(renderedRows));
-    $("#centerBtn").addEventListener("click", () => map.setView([state.center.lat, state.center.lng], 12, { animate: true }));
-
-    $("#sortSelect").addEventListener("change", e => { state.sortBy = e.target.value; refresh(); });
-    $("#typeSelect").addEventListener("change", e => { state.typeFilter = e.target.value; refresh(); });
-    $("#openSelect").addEventListener("change", e => { state.openFilter = e.target.value; refresh(); });
-    $("#mapStyleSelect").addEventListener("change", e => setMapStyle(e.target.value));
-    $("#distRange").addEventListener("input", e => { state.maxDist = Number(e.target.value); refresh(); });
-    $("#waitRange").addEventListener("input", e => { state.maxWait = Number(e.target.value); refresh(); });
-    $("#erOnlySelect").addEventListener("change", e => { state.erOnly = e.target.value; refresh(); });
-
-    $("#favOnlyBtn").addEventListener("click", () => {
-      state.favoritesOnly = !state.favoritesOnly;
-      refresh();
-      showToast(state.favoritesOnly ? "Favorites-only mode ON" : "Favorites-only mode OFF");
-    });
-
-    $("#resetBtn").addEventListener("click", () => {
-      state.sortBy = "best";
-      state.typeFilter = "all";
-      state.openFilter = "any";
-      state.mapStyle = "osm";
-      state.maxDist = 15;
-      state.maxWait = 150;
-      state.erOnly = "off";
-      state.selectedServices = new Set();
-      state.highlightId = null;
-      state.favoritesOnly = false;
-
-      $("#sortSelect").value = "best";
-      $("#typeSelect").value = "all";
-      $("#openSelect").value = "any";
-      $("#mapStyleSelect").value = "osm";
-      $("#distRange").value = 15;
-      $("#waitRange").value = 150;
-      $("#erOnlySelect").value = "off";
-      $("#searchInput").value = "";
-
-      renderServiceChips();
-      setMapStyle("osm");
-      setCenter(43.6532, -79.3832, "Toronto, ON");
-      showToast("Filters reset");
-    });
-
-    // ------------------------------
-    // Init
-    // ------------------------------
-    initTheme();
-    renderServiceChips();
-    setMapStyle("osm");
-    setCenter(state.center.lat, state.center.lng, state.center.label);
+    state.mapStyle = k;
+  }
+
+  function setCenter(lat,lng,label){
+    state.center = {lat,lng,label};
+    $("#areaText").textContent = label || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+    map.setView([lat,lng],12,{animate:true});
+    if(centerMarker) centerMarker.remove();
+    centerMarker = L.circleMarker([lat,lng], {
+      radius: 7, color:"#2563eb", fillColor:"#2563eb", fillOpacity:.26, weight:2
+    }).addTo(map);
     refresh();
-  </script>
+  }
+
+  function fitResults(rows){
+    if(!rows.length){
+      map.setView([state.center.lat, state.center.lng], 12);
+      return;
+    }
+    const b = L.latLngBounds(rows.map(r=>[r.lat,r.lng]));
+    map.fitBounds(b.pad(0.18), {animate:true});
+  }
+
+  function minsAgo(iso){ return (Date.now()-new Date(iso).getTime())/60000; }
+  function agoText(iso){
+    const m = minsAgo(iso);
+    if(m < 1) return "just now";
+    if(m < 60) return `${Math.round(m)}m ago`;
+    const h = m/60;
+    if(h < 24) return `${Math.round(h)}h ago`;
+    return `${Math.round(h/24)}d ago`;
+  }
+
+  function estimateWait(f){
+    let w = f.baseWait;
+    const m = minsAgo(f.updated);
+    w += clamp((m-25)/7, 0, 30);
+    const h = new Date().getHours() + new Date().getMinutes()/60;
+    w += Math.exp(-Math.pow((h-11)/2.6,2))*16 + Math.exp(-Math.pow((h-18)/2.4,2))*13;
+    if(f.erCapable) w += Math.exp(-Math.pow((h-20)/2.5,2))*9;
+    return clamp(w, 0, 300);
+  }
+
+  function computeRows(){
+    return FACILITIES.map(f => {
+      const dist = haversine(state.center.lat, state.center.lng, f.lat, f.lng);
+      const wait = estimateWait(f);
+      const open = openState(f.hours);
+      const score = dist*3.2 + wait*1.0 + (5-f.rating)*5 + (open.state==="open" ? -8 : open.state==="closing" ? 2 : 14) + (f.erCapable ? -4 : 0);
+      return {...f, _dist:dist, _wait:wait, _open:open, _score:score, _fav:state.favorites.has(f.id)};
+    });
+  }
+
+  function pass(r){
+    if(r._dist > state.maxDist) return false;
+    if(r._wait > state.maxWait) return false;
+
+    if(state.type==="clinic" && r.type!=="clinic") return false;
+    if(state.type==="hospital" && r.type!=="hospital") return false;
+    if(state.type==="er" && !r.erCapable) return false;
+
+    if(state.open==="open" && !(r._open.state==="open" || r._open.state==="closing")) return false;
+    if(state.open==="closing" && r._open.state!=="closing") return false;
+
+    if(state.erOnly==="on" && !r.erCapable) return false;
+    if(state.erOnly==="peds" && !r.pediatricER) return false;
+
+    if(state.favOnly && !r._fav) return false;
+
+    if(state.selectedServices.size){
+      const s = new Set(r.services || []);
+      for(const x of state.selectedServices) if(!s.has(x)) return false;
+    }
+
+    return true;
+  }
+
+  function sortRows(rows){
+    const arr = [...rows];
+    if(state.sortBy==="wait") arr.sort((a,b)=>a._wait-b._wait);
+    else if(state.sortBy==="distance") arr.sort((a,b)=>a._dist-b._dist);
+    else if(state.sortBy==="rating") arr.sort((a,b)=>b.rating-a.rating);
+    else if(state.sortBy==="erwait") arr.sort((a,b)=>(a.erCapable?a._wait:9999)-(b.erCapable?b._wait:9999));
+    else arr.sort((a,b)=>a._score-b._score);
+    return arr;
+  }
+
+  function markerColor(r){
+    if(r.type==="hospital" && r.erCapable) return r._wait <= 45 ? "#ef4444" : r._wait <= 90 ? "#f97316" : "#b91c1c";
+    if(r.type==="hospital") return "#7c3aed";
+    return r._wait <= 25 ? "#16a34a" : r._wait <= 60 ? "#d97706" : "#dc2626";
+  }
+
+  function renderMap(rows){
+    markerLayer.clearLayers();
+    rows.forEach(r=>{
+      const col = markerColor(r);
+      const m = L.circleMarker([r.lat,r.lng], {
+        radius: state.highlight===r.id ? 10 : 7,
+        color: col, fillColor: col, fillOpacity: .30, weight: state.highlight===r.id ? 3 : 2
+      }).addTo(markerLayer);
+
+      const type = r.type==="clinic" ? "Clinic" : (r.erCapable ? "Hospital + ER" : "Hospital");
+      m.bindPopup(`
+        <div style="font-family:Inter,system-ui;min-width:220px">
+          <div style="font-weight:900;margin-bottom:4px">${esc(r.name)}</div>
+          <div style="font-size:12px;color:#64748b;margin-bottom:8px">${esc(r.address)}</div>
+          <div style="font-size:12px;line-height:1.45">
+            <div><b>Type:</b> ${type}</div>
+            <div><b>Distance:</b> ${kmFmt(r._dist)}</div>
+            <div><b>Wait:</b> ~${Math.round(r._wait)} min</div>
+            <div><b>Status:</b> ${esc(r._open.text)}</div>
+          </div>
+        </div>
+      `);
+      m.on("click", ()=>{
+        state.highlight = r.id;
+        focus(r.id, false);
+      });
+    });
+  }
+
+  function renderCompare(){
+    const drawer = $("#compareDrawer");
+    const body = $("#compareBody");
+    const ids = Array.from(state.compare);
+    if(!ids.length){
+      drawer.style.display = "none";
+      body.innerHTML = "";
+      return;
+    }
+    drawer.style.display = "block";
+    const rows = rendered.filter(r => ids.includes(r.id));
+    body.innerHTML = rows.map(r => `
+      <div class="cmp-item">
+        <div class="cmp-title">${esc(r.name)}</div>
+        <div>Type: ${r.type==="clinic"?"Clinic":"Hospital"}${r.erCapable?" + ER":""}</div>
+        <div>Wait: ~${Math.round(r._wait)} min</div>
+        <div>Distance: ${kmFmt(r._dist)}</div>
+        <div>Rating: ${r.rating.toFixed(1)}</div>
+        <div>Status: ${esc(r._open.text)}</div>
+      </div>
+    `).join("");
+  }
+
+  function renderList(rows){
+    const host = $("#resultsList");
+    host.innerHTML = "";
+
+    $("#countStat").textContent = rows.length;
+    $("#bestStat").textContent = rows.length ? (rows[0].name.length>14 ? rows[0].name.slice(0,14)+"…" : rows[0].name) : "—";
+    $("#avgStat").textContent = rows.length ? `${Math.round(rows.reduce((a,b)=>a+b._wait,0)/rows.length)}m` : "—";
+
+    if(!rows.length){
+      host.innerHTML = `<div class="card"><h4 class="name">No matches with current filters</h4><div class="addr">Try increasing max distance/wait or removing service filters.</div></div>`;
+      renderCompare();
+      return;
+    }
+
+    rows.forEach(r=>{
+      const typeClass = r.type==="clinic" ? "type-clinic" : (r.erCapable ? "type-er" : "type-hospital");
+      const typeText = r.type==="clinic" ? "Clinic" : (r.erCapable ? "Hospital + ER" : "Hospital");
+      const isCmp = state.compare.has(r.id);
+
+      const card = document.createElement("article");
+      card.className = "card" + (state.highlight===r.id ? " active" : "");
+      card.innerHTML = `
+        <div class="topline">
+          <div style="min-width:0">
+            <h4 class="name">${esc(r.name)}</h4>
+            <div class="addr">${esc(r.address)}</div>
+          </div>
+          <div class="badges">
+            <span class="badge ${typeClass}">${typeText}</span>
+            <span class="badge ${waitClass(r._wait)}">~${Math.round(r._wait)}m</span>
+            <span class="badge ${openClass(r._open.state)}">${esc(r._open.text)}</span>
+          </div>
+        </div>
+        <div class="meta">
+          <span class="pill">Distance: ${kmFmt(r._dist)}</span>
+          <span class="pill">Rating: ${r.rating.toFixed(1)}</span>
+          <span class="pill">Updated: ${agoText(r.updated)}</span>
+          ${r.erCapable ? `<span class="pill">ER capable</span>` : ``}
+          ${r.pediatricER ? `<span class="pill">Pediatric ER</span>` : ``}
+        </div>
+        <div class="meta">
+          ${(r.services||[]).slice(0,6).map(s=>`<span class="pill">${esc(s)}</span>`).join("")}
+        </div>
+        <div class="actions">
+          <button class="btn" data-view="${r.id}">View</button>
+          <button class="btn primary" data-dir="${r.id}">Directions</button>
+          <button class="btn" data-fav="${r.id}">${r._fav ? "★ Favorited" : "☆ Favorite"}</button>
+          <button class="btn ${isCmp ? "toggle on" : ""}" data-cmp="${r.id}">${isCmp ? "Compared" : "Compare"}</button>
+        </div>
+      `;
+      card.addEventListener("click", (e)=>{
+        if(e.target.closest("button")) return;
+        focus(r.id, true);
+      });
+      host.appendChild(card);
+    });
+
+    host.querySelectorAll("[data-view]").forEach(b=>{
+      b.onclick = (e)=>{ e.stopPropagation(); focus(b.dataset.view, true); };
+    });
+    host.querySelectorAll("[data-dir]").forEach(b=>{
+      b.onclick = (e)=>{
+        e.stopPropagation();
+        const r = rendered.find(x=>x.id===b.dataset.dir);
+        if(!r) return;
+        const origin = `${state.center.lat},${state.center.lng}`;
+        const dest = `${r.lat},${r.lng}`;
+        window.open(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}&travelmode=driving`, "_blank", "noopener,noreferrer");
+      };
+    });
+    host.querySelectorAll("[data-fav]").forEach(b=>{
+      b.onclick = (e)=>{
+        e.stopPropagation();
+        const id = b.dataset.fav;
+        if(state.favorites.has(id)) state.favorites.delete(id); else state.favorites.add(id);
+        localStorage.setItem(LS_FAV, JSON.stringify(Array.from(state.favorites)));
+        refresh();
+      };
+    });
+    host.querySelectorAll("[data-cmp]").forEach(b=>{
+      b.onclick = (e)=>{
+        e.stopPropagation();
+        const id = b.dataset.cmp;
+        if(state.compare.has(id)) state.compare.delete(id);
+        else {
+          if(state.compare.size >= 4){
+            showToast("Compare supports up to 4 options");
+            return;
+          }
+          state.compare.add(id);
+        }
+        renderList(rendered);
+      };
+    });
+
+    renderCompare();
+  }
+
+  function focus(id, openPopup){
+    const r = rendered.find(x=>x.id===id);
+    if(!r) return;
+    state.highlight = id;
+
+    if(highlightCircle) highlightCircle.remove();
+    highlightCircle = L.circle([r.lat, r.lng], {
+      radius: 280,
+      color: "#2563eb",
+      weight: 2,
+      fillColor:"#2563eb",
+      fillOpacity:.06
+    }).addTo(map);
+
+    map.setView([r.lat, r.lng], 14, {animate:true});
+
+    if(openPopup){
+      markerLayer.eachLayer(layer=>{
+        const ll = layer.getLatLng?.();
+        if(ll && Math.abs(ll.lat-r.lat)<1e-6 && Math.abs(ll.lng-r.lng)<1e-6) layer.openPopup();
+      });
+    }
+
+    renderMap(rendered);
+    renderList(rendered);
+  }
+
+  function refresh(){
+    const rows = computeRows().filter(pass);
+    rendered = sortRows(rows);
+    renderMap(rendered);
+    renderList(rendered);
+
+    $("#distLabel").textContent = `${state.maxDist} km`;
+    $("#waitLabel").textContent = `${state.maxWait} min`;
+    $("#favOnlyBtn").textContent = `Favorites only: ${state.favOnly ? "ON" : "OFF"}`;
+    $("#erQuickBtn").classList.toggle("on", state.erQuick);
+    $("#urgentBanner").style.display = state.erQuick ? "block" : "none";
+  }
+
+  function renderServiceChips(){
+    const host = $("#serviceChips");
+    host.innerHTML = "";
+    ALL_SERVICES.forEach(s=>{
+      const chip = document.createElement("div");
+      chip.className = "chip" + (state.selectedServices.has(s) ? " on" : "");
+      chip.textContent = s;
+      chip.onclick = ()=>{
+        if(state.selectedServices.has(s)) state.selectedServices.delete(s); else state.selectedServices.add(s);
+        renderServiceChips();
+        refresh();
+      };
+      host.appendChild(chip);
+    });
+  }
+
+  // Search suggestions
+  const searchInput = $("#searchInput");
+  const suggestBox = $("#suggestBox");
+  let suggestions = [];
+  let activeIndex = -1;
+  let debounceTimer = null;
+  let aborter = null;
+  let lastFetch = 0;
+
+  function hideSuggest(){
+    suggestBox.style.display = "none";
+    suggestions = [];
+    activeIndex = -1;
+  }
+
+  function renderSuggest(items){
+    suggestions = items;
+    activeIndex = -1;
+    if(!items.length){
+      suggestBox.innerHTML = `<div class="s-item"><div class="s-title">No results</div><div class="s-sub">Try a more specific address</div></div>`;
+      suggestBox.style.display = "block";
+      return;
+    }
+    suggestBox.innerHTML = items.map((it,i)=>{
+      const p = (it.display_name || "").split(",");
+      return `<div class="s-item" data-i="${i}">
+        <div class="s-title">${esc(p.slice(0,2).join(",").trim())}</div>
+        <div class="s-sub">${esc(p.slice(2).join(",").trim())}</div>
+      </div>`;
+    }).join("");
+    suggestBox.style.display = "block";
+    suggestBox.querySelectorAll(".s-item[data-i]").forEach(el=>{
+      el.onclick = ()=>chooseSuggestion(Number(el.dataset.i));
+    });
+  }
+
+  async function geocode(q){
+    const delta = Date.now() - lastFetch;
+    if(delta < 900) await new Promise(r=>setTimeout(r, 900-delta));
+    lastFetch = Date.now();
+
+    if(aborter) aborter.abort();
+    aborter = new AbortController();
+
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=7&accept-language=en&q=${encodeURIComponent(q)}`;
+    const res = await fetch(url, {signal:aborter.signal, headers:{Accept:"application/json"}});
+    if(!res.ok) throw new Error("geocode failed");
+    return res.json();
+  }
+
+  function chooseSuggestion(i){
+    const it = suggestions[i];
+    if(!it) return;
+    const lat = Number(it.lat), lng = Number(it.lon);
+    const label = (it.display_name || "").split(",").slice(0,3).join(",").trim();
+    searchInput.value = it.display_name || "";
+    hideSuggest();
+    setCenter(lat, lng, label);
+    fitResults(rendered);
+  }
+
+  searchInput.addEventListener("input", ()=>{
+    const q = searchInput.value.trim();
+    if(q.length < 3){ hideSuggest(); return; }
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async ()=>{
+      try { renderSuggest(await geocode(q)); }
+      catch(e){ if(e.name!=="AbortError") showToast("Search temporarily unavailable"); }
+    }, 280);
+  });
+
+  searchInput.addEventListener("keydown", (e)=>{
+    if(e.key==="Escape"){ hideSuggest(); return; }
+    if(e.key==="ArrowDown"){
+      if(!suggestions.length) return;
+      e.preventDefault(); activeIndex = Math.min(activeIndex+1, suggestions.length-1);
+    } else if(e.key==="ArrowUp"){
+      if(!suggestions.length) return;
+      e.preventDefault(); activeIndex = Math.max(activeIndex-1, 0);
+    } else if(e.key==="Enter"){
+      if(activeIndex >= 0){ e.preventDefault(); chooseSuggestion(activeIndex); return; }
+      return;
+    } else return;
+
+    suggestBox.querySelectorAll(".s-item[data-i]").forEach(el=>el.classList.remove("active"));
+    const active = suggestBox.querySelector(`.s-item[data-i="${activeIndex}"]`);
+    if(active) active.classList.add("active");
+  });
+
+  document.addEventListener("click", (e)=>{
+    if(!e.target.closest(".input-wrap")) hideSuggest();
+  });
+
+  $("#searchBtn").onclick = async ()=>{
+    const q = searchInput.value.trim();
+    if(q.length < 3){ showToast("Type at least 3 characters"); return; }
+    try{
+      const items = await geocode(q);
+      if(!items.length){ showToast("No results found"); return; }
+      suggestions = items;
+      chooseSuggestion(0);
+    } catch {
+      showToast("Could not search right now");
+    }
+  };
+
+  // Controls
+  $("#themeBtn").onclick = cycleTheme;
+
+  $("#useLocationBtn").onclick = ()=>{
+    if(!navigator.geolocation){ showToast("Geolocation not supported on this device"); return; }
+    showToast("Getting your location...");
+    navigator.geolocation.getCurrentPosition(
+      p => { setCenter(p.coords.latitude, p.coords.longitude, "Your location"); fitResults(rendered); showToast("Location updated"); },
+      () => showToast("Location access denied. Use manual search."),
+      {enableHighAccuracy:true, timeout:12000, maximumAge:60000}
+    );
+  };
+
+  $("#fitBtn").onclick = ()=>fitResults(rendered);
+  $("#zoomResultsBtn").onclick = ()=>fitResults(rendered);
+  $("#centerBtn").onclick = ()=>map.setView([state.center.lat, state.center.lng], 12, {animate:true});
+
+  $("#sortSelect").onchange = (e)=>{ state.sortBy = e.target.value; refresh(); };
+  $("#typeSelect").onchange = (e)=>{ state.type = e.target.value; refresh(); };
+  $("#openSelect").onchange = (e)=>{ state.open = e.target.value; refresh(); };
+  $("#mapStyleSelect").onchange = (e)=>{ setMapStyle(e.target.value); };
+  $("#distRange").oninput = (e)=>{ state.maxDist = Number(e.target.value); refresh(); };
+  $("#waitRange").oninput = (e)=>{ state.maxWait = Number(e.target.value); refresh(); };
+  $("#erOnlySelect").onchange = (e)=>{ state.erOnly = e.target.value; refresh(); };
+
+  $("#favOnlyBtn").onclick = ()=>{
+    state.favOnly = !state.favOnly;
+    refresh();
+  };
+
+  $("#erQuickBtn").onclick = ()=>{
+    state.erQuick = !state.erQuick;
+    if(state.erQuick){
+      state.type = "er";
+      state.erOnly = "on";
+      state.sortBy = "erwait";
+      state.maxDist = 30;
+      $("#typeSelect").value = "er";
+      $("#erOnlySelect").value = "on";
+      $("#sortSelect").value = "erwait";
+      $("#distRange").value = "30";
+      showToast("ER Quick Mode enabled");
+    } else {
+      state.type = "all";
+      state.erOnly = "off";
+      state.sortBy = "best";
+      state.maxDist = 15;
+      $("#typeSelect").value = "all";
+      $("#erOnlySelect").value = "off";
+      $("#sortSelect").value = "best";
+      $("#distRange").value = "15";
+      showToast("ER Quick Mode disabled");
+    }
+    refresh();
+  };
+
+  $("#clearCompareBtn").onclick = ()=>{
+    state.compare.clear();
+    renderCompare();
+    renderList(rendered);
+  };
+
+  $("#resetBtn").onclick = ()=>{
+    state.sortBy = "best";
+    state.type = "all";
+    state.open = "any";
+    state.mapStyle = "osm";
+    state.maxDist = 15;
+    state.maxWait = 150;
+    state.erOnly = "off";
+    state.erQuick = false;
+    state.favOnly = false;
+    state.selectedServices = new Set();
+    state.highlight = null;
+    state.compare.clear();
+
+    $("#sortSelect").value = "best";
+    $("#typeSelect").value = "all";
+    $("#openSelect").value = "any";
+    $("#mapStyleSelect").value = "osm";
+    $("#distRange").value = "15";
+    $("#waitRange").value = "150";
+    $("#erOnlySelect").value = "off";
+    $("#searchInput").value = "";
+
+    setMapStyle("osm");
+    renderServiceChips();
+    setCenter(43.6532, -79.3832, "Toronto, ON");
+    showToast("Reset complete");
+  };
+
+  // init
+  const savedTheme = localStorage.getItem(LS_THEME) || "auto";
+  applyTheme(savedTheme);
+  setMapStyle("osm");
+  renderServiceChips();
+  setCenter(state.center.lat, state.center.lng, state.center.label);
+  refresh();
+})();
+</script>
 </body>
 </html>
