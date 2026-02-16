@@ -4,46 +4,42 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Clinic Wait Time Finder</title>
-  <meta name="description" content="Find walk-in clinics near you, compare wait times, hours, services, and get directions." />
+  <meta name="description" content="Find walk-in clinics near you. Compare wait time, distance, hours, services, and get directions." />
   <meta name="theme-color" content="#0b1220" />
 
   <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    crossorigin=""
-  />
-  <script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-    crossorigin=""
-  ></script>
-
-  <!-- Preconnect -->
-  <link rel="preconnect" href="https://nominatim.openstreetmap.org" />
-  <link rel="preconnect" href="https://tile.openstreetmap.org" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
 
   <style>
     :root{
-      --bg:#0b1220;
-      --panel:#0f172a;
-      --card:#0b1a2f;
-      --card2:#0a1426;
-      --muted:#94a3b8;
-      --text:#e5e7eb;
-      --line:rgba(148,163,184,.14);
-      --line2:rgba(148,163,184,.22);
-      --accent:#22d3ee;
-      --accent2:#a78bfa;
+      --bg0:#050816;
+      --bg1:#070b1d;
+      --panel: rgba(255,255,255,.06);
+      --panel2: rgba(255,255,255,.04);
+      --stroke: rgba(255,255,255,.12);
+      --stroke2: rgba(255,255,255,.18);
+      --text:#eaf0ff;
+      --muted:#a7b2cc;
+      --shadow: 0 24px 80px rgba(0,0,0,.55);
+      --shadow2: 0 14px 40px rgba(0,0,0,.38);
+      --radius: 20px;
+
+      /* vivid gradients */
+      --c1:#22d3ee; /* cyan */
+      --c2:#a78bfa; /* purple */
+      --c3:#34d399; /* green */
+      --c4:#fb7185; /* rose */
+      --c5:#fbbf24; /* amber */
+
       --good:#22c55e;
       --warn:#f59e0b;
       --bad:#ef4444;
-      --shadow: 0 14px 50px rgba(0,0,0,.45);
-      --shadow2: 0 10px 30px rgba(0,0,0,.35);
-      --radius:18px;
-      --radius2:14px;
+
       --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
     }
+
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
@@ -51,94 +47,114 @@
       font-family:var(--sans);
       color:var(--text);
       background:
-        radial-gradient(900px 500px at 10% 10%, rgba(34,211,238,.13), transparent 60%),
-        radial-gradient(900px 500px at 85% 25%, rgba(167,139,250,.12), transparent 55%),
-        radial-gradient(900px 500px at 55% 95%, rgba(34,197,94,.08), transparent 60%),
-        linear-gradient(180deg, #070b14 0%, #0b1220 45%, #070b14 100%);
+        radial-gradient(900px 520px at 12% 15%, rgba(34,211,238,.22), transparent 60%),
+        radial-gradient(900px 520px at 85% 22%, rgba(167,139,250,.20), transparent 60%),
+        radial-gradient(900px 520px at 55% 92%, rgba(52,211,153,.14), transparent 60%),
+        radial-gradient(700px 420px at 35% 65%, rgba(251,113,133,.10), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1) 55%, var(--bg0));
       overflow:hidden;
     }
-    a{color:inherit}
+
+    /* Layout */
     .app{
       height:100%;
       display:grid;
-      grid-template-rows:auto 1fr auto;
+      grid-template-rows: auto 1fr auto;
     }
 
-    /* Top bar */
+    /* Topbar */
     .topbar{
-      position:sticky; top:0; z-index:50;
+      position:sticky;
+      top:0;
+      z-index:50;
+      background: linear-gradient(180deg, rgba(5,8,22,.82), rgba(5,8,22,.55));
       backdrop-filter: blur(14px);
-      background: linear-gradient(180deg, rgba(10,20,38,.88), rgba(10,20,38,.55));
-      border-bottom:1px solid var(--line);
+      border-bottom: 1px solid rgba(255,255,255,.10);
     }
     .topbar-inner{
-      max-width:1200px;
+      max-width: 1240px;
       margin:0 auto;
-      padding:14px 16px;
+      padding: 14px 16px;
       display:flex;
+      gap:14px;
       align-items:center;
-      gap:12px;
+      flex-wrap:wrap;
     }
+
     .brand{
-      display:flex; align-items:center; gap:10px;
-      min-width: 255px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      min-width: 260px;
     }
     .logo{
-      width:38px; height:38px; border-radius:12px;
+      width:42px; height:42px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.16);
       background:
-        radial-gradient(circle at 30% 30%, rgba(34,211,238,.85), rgba(34,211,238,.05) 55%),
-        radial-gradient(circle at 75% 65%, rgba(167,139,250,.85), rgba(167,139,250,.05) 55%),
-        linear-gradient(135deg, rgba(255,255,255,.12), rgba(255,255,255,0));
-      border:1px solid rgba(255,255,255,.12);
-      box-shadow: 0 10px 24px rgba(0,0,0,.35);
+        radial-gradient(circle at 30% 25%, rgba(34,211,238,.92), rgba(34,211,238,0) 58%),
+        radial-gradient(circle at 75% 70%, rgba(167,139,250,.92), rgba(167,139,250,0) 55%),
+        linear-gradient(135deg, rgba(255,255,255,.14), rgba(255,255,255,.02));
+      box-shadow: 0 16px 40px rgba(0,0,0,.45);
       position:relative;
       overflow:hidden;
     }
     .logo::after{
       content:"";
-      position:absolute; inset:-60% -60%;
-      background: conic-gradient(from 210deg, transparent, rgba(255,255,255,.12), transparent);
-      animation: spin 8s linear infinite;
+      position:absolute;
+      inset:-70%;
+      background: conic-gradient(from 220deg, transparent, rgba(255,255,255,.18), transparent);
+      animation: spin 9s linear infinite;
     }
-    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes spin { to { transform: rotate(360deg); } }
     .brand h1{
       margin:0;
       font-size:14px;
-      letter-spacing:.2px;
+      letter-spacing:.25px;
       line-height:1.1;
     }
     .brand small{
       display:block;
+      margin-top:3px;
       color:var(--muted);
       font-size:12px;
-      margin-top:2px;
     }
 
-    .search{
+    /* Search bar */
+    .searchbar{
       flex:1;
+      min-width: 320px;
       display:flex;
       gap:10px;
       align-items:center;
-      position:relative;
     }
-    .input{
+
+    .inputWrap{
       flex:1;
       position:relative;
     }
-    .input input{
+    .searchInput{
       width:100%;
-      padding:12px 44px 12px 14px;
-      border-radius:14px;
-      border:1px solid var(--line2);
-      background: rgba(7,11,20,.55);
-      color:var(--text);
+      padding: 12px 44px 12px 44px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.05);
+      color: var(--text);
       outline:none;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.03);
-      transition: border .18s ease, transform .18s ease;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.04);
+      transition: transform .16s ease, border .16s ease, box-shadow .16s ease;
     }
-    .input input:focus{
-      border-color: rgba(34,211,238,.55);
+    .searchInput:focus{
       transform: translateY(-1px);
+      border-color: rgba(34,211,238,.55);
+      box-shadow: 0 0 0 6px rgba(34,211,238,.12);
+    }
+    .searchIcon{
+      position:absolute; left:14px; top:50%;
+      transform: translateY(-50%);
+      width:18px; height:18px;
+      opacity:.9;
+      pointer-events:none;
     }
     .kbd{
       position:absolute;
@@ -146,11 +162,11 @@
       transform: translateY(-50%);
       font-family:var(--mono);
       font-size:11px;
-      color:rgba(148,163,184,.85);
-      border:1px solid var(--line2);
-      background: rgba(255,255,255,.04);
+      color: rgba(167,178,204,.95);
+      border:1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.18);
       padding:3px 7px;
-      border-radius:9px;
+      border-radius: 10px;
       user-select:none;
     }
 
@@ -159,105 +175,130 @@
       align-items:center;
       justify-content:center;
       gap:8px;
-      padding:11px 12px;
-      border-radius:14px;
-      border:1px solid var(--line2);
-      background: rgba(255,255,255,.05);
-      color:var(--text);
+      padding: 11px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color: var(--text);
       cursor:pointer;
-      transition: transform .16s ease, border .16s ease, background .16s ease, box-shadow .16s ease;
       user-select:none;
+      transition: transform .14s ease, border .14s ease, background .14s ease, box-shadow .14s ease;
       white-space:nowrap;
     }
     .btn:hover{
       transform: translateY(-1px);
       border-color: rgba(255,255,255,.22);
-      box-shadow: 0 12px 28px rgba(0,0,0,.25);
-      background: rgba(255,255,255,.07);
+      background: rgba(255,255,255,.08);
+      box-shadow: 0 16px 40px rgba(0,0,0,.32);
     }
-    .btn:active{transform: translateY(0px)}
+    .btn:active{ transform: translateY(0px); }
     .btn.primary{
-      border-color: rgba(34,211,238,.35);
-      background: linear-gradient(135deg, rgba(34,211,238,.20), rgba(167,139,250,.16));
-      box-shadow: 0 14px 40px rgba(0,0,0,.22);
+      border-color: rgba(34,211,238,.30);
+      background: linear-gradient(135deg, rgba(34,211,238,.24), rgba(167,139,250,.18));
+      box-shadow: 0 18px 55px rgba(0,0,0,.25);
     }
     .btn.primary:hover{
       border-color: rgba(34,211,238,.6);
-      background: linear-gradient(135deg, rgba(34,211,238,.28), rgba(167,139,250,.22));
+      background: linear-gradient(135deg, rgba(34,211,238,.32), rgba(167,139,250,.24));
     }
     .btn.danger{
-      border-color: rgba(239,68,68,.35);
+      border-color: rgba(239,68,68,.28);
       background: rgba(239,68,68,.08);
     }
+    .btn.small{
+      padding: 9px 10px;
+      border-radius: 14px;
+      font-size: 12px;
+    }
     .icon{
-      width:18px; height:18px; display:inline-block;
+      width:18px; height:18px;
       opacity:.95;
     }
 
-    /* Autocomplete */
+    /* Suggest dropdown */
     .suggest{
       position:absolute;
+      left:0; right:0;
       top: calc(100% + 8px);
-      left:0;
-      right:0;
-      background: rgba(10,20,38,.92);
-      border:1px solid var(--line2);
-      border-radius:16px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(5,8,22,.92);
+      backdrop-filter: blur(12px);
       box-shadow: var(--shadow2);
       overflow:hidden;
       display:none;
-      z-index:70;
+      z-index:100;
     }
-    .suggest .row{
+    .suggestHeader{
+      padding:10px 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      color: rgba(167,178,204,.95);
+      font-size:12px;
+    }
+    .suggestRow{
       padding:10px 12px;
       display:flex;
       gap:10px;
       cursor:pointer;
-      border-top:1px solid rgba(148,163,184,.10);
+      border-top: 1px solid rgba(255,255,255,.06);
       transition: background .12s ease;
     }
-    .suggest .row:hover{background: rgba(255,255,255,.05)}
-    .suggest .row:first-child{border-top:none}
-    .suggest .title{font-size:13px; line-height:1.2}
-    .suggest .sub{font-size:12px; color:var(--muted); margin-top:2px; line-height:1.15}
+    .suggestRow:hover{ background: rgba(255,255,255,.06); }
+    .suggestRow.active{ background: rgba(34,211,238,.10); }
     .pin{
-      width:28px; height:28px; border-radius:10px;
-      background: rgba(34,211,238,.12);
-      border:1px solid rgba(34,211,238,.25);
+      width:30px; height:30px;
+      border-radius: 12px;
+      border:1px solid rgba(34,211,238,.24);
+      background: rgba(34,211,238,.10);
       display:flex; align-items:center; justify-content:center;
       flex:0 0 auto;
     }
+    .sTitle{ font-size:13px; line-height:1.2; }
+    .sSub{ font-size:12px; color:var(--muted); margin-top:2px; line-height:1.2; }
 
-    /* Main layout */
+    /* Main */
     .main{
-      height:100%;
-      max-width:1200px;
+      max-width:1240px;
       margin:0 auto;
-      padding:14px 16px 12px;
+      padding: 14px 16px;
+      height:100%;
       display:grid;
-      grid-template-columns: 420px 1fr;
+      grid-template-columns: 440px 1fr;
       gap:14px;
+      min-height:0;
       overflow:hidden;
     }
-
     .panel{
-      background: linear-gradient(180deg, rgba(15,23,42,.78), rgba(15,23,42,.55));
-      border:1px solid var(--line);
       border-radius: var(--radius);
+      border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
       box-shadow: var(--shadow);
       overflow:hidden;
       min-height:0;
     }
 
-    .sidebar{
-      display:flex;
-      flex-direction:column;
-      min-height:0;
+    /* Sidebar */
+    .sidebar{ display:flex; flex-direction:column; min-height:0; }
+    .sidebarHeader{
+      padding:14px 14px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background:
+        radial-gradient(500px 220px at 10% 0%, rgba(34,211,238,.16), transparent 60%),
+        radial-gradient(500px 220px at 90% 0%, rgba(167,139,250,.14), transparent 60%),
+        rgba(255,255,255,.02);
     }
-
-    .sidebar-header{
-      padding:14px 14px 10px;
-      border-bottom:1px solid var(--line);
+    .nearLine{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .nearLabelSmall{ font-size:12px; color:var(--muted); }
+    .nearLabel{
+      margin-top:4px;
+      font-weight: 800;
+      letter-spacing:.2px;
+      font-size: 14px;
     }
     .stats{
       display:grid;
@@ -267,26 +308,26 @@
     }
     .stat{
       padding:10px 12px;
-      border-radius:16px;
-      background: rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.08);
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.16);
     }
-    .stat .k{font-size:11px; color:var(--muted)}
-    .stat .v{font-size:16px; margin-top:4px; font-weight:700; letter-spacing:.2px}
+    .stat .k{ font-size:11px; color:var(--muted); }
+    .stat .v{ margin-top:4px; font-size:16px; font-weight: 850; }
 
     .filters{
       padding:12px 14px;
-      border-bottom:1px solid var(--line);
-      background: rgba(7,11,20,.18);
+      border-bottom:1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.10);
     }
-    .filters-grid{
+    .grid{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap:10px;
     }
-    .select, .range, .chipset{
+    .box{
       padding:10px 12px;
-      border-radius:16px;
+      border-radius: 18px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.04);
     }
@@ -300,99 +341,106 @@
       width:100%;
       border:none;
       outline:none;
-      background: transparent;
+      background:transparent;
       color:var(--text);
       font-size:13px;
       appearance:none;
       cursor:pointer;
     }
-    .range input[type="range"]{width:100%}
-    .range .meta{
-      display:flex; justify-content:space-between; margin-top:6px;
-      font-size:12px; color:var(--muted);
+    input[type="range"]{ width:100%; }
+    .meta{
+      margin-top:6px;
+      display:flex;
+      justify-content:space-between;
+      font-size:12px;
+      color:var(--muted);
       font-family:var(--mono);
     }
 
     .chips{
-      display:flex; flex-wrap:wrap; gap:8px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
     }
     .chip{
-      display:inline-flex; align-items:center; gap:8px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
       padding:7px 10px;
       border-radius:999px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(255,255,255,.03);
-      color:rgba(229,231,235,.92);
       font-size:12px;
       cursor:pointer;
       user-select:none;
-      transition: border .14s ease, background .14s ease, transform .14s ease;
+      transition: transform .12s ease, border .12s ease, background .12s ease;
     }
-    .chip:hover{
-      transform: translateY(-1px);
-      border-color: rgba(255,255,255,.18);
-      background: rgba(255,255,255,.05);
-    }
+    .chip:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.18); background: rgba(255,255,255,.05); }
     .chip.on{
       border-color: rgba(34,211,238,.45);
       background: rgba(34,211,238,.10);
-      box-shadow: 0 10px 24px rgba(0,0,0,.22);
+      box-shadow: 0 12px 28px rgba(0,0,0,.22);
     }
-    .chip .dot{
+    .dot{
       width:8px; height:8px; border-radius:50%;
-      background: rgba(148,163,184,.7);
-      box-shadow: 0 0 0 3px rgba(148,163,184,.12);
+      background: rgba(167,178,204,.75);
+      box-shadow: 0 0 0 3px rgba(167,178,204,.12);
     }
-    .chip.on .dot{
-      background: var(--accent);
-      box-shadow: 0 0 0 3px rgba(34,211,238,.18);
-    }
+    .chip.on .dot{ background: var(--c1); box-shadow: 0 0 0 3px rgba(34,211,238,.18); }
 
     .list{
-      padding:12px 12px 14px;
+      padding: 12px 12px 14px;
       overflow:auto;
       min-height:0;
     }
+
     .card{
-      border-radius: 18px;
-      border:1px solid rgba(255,255,255,.10);
-      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
-      box-shadow: 0 10px 26px rgba(0,0,0,.25);
       padding:12px;
+      border-radius: 20px;
+      border:1px solid rgba(255,255,255,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03));
+      box-shadow: 0 12px 30px rgba(0,0,0,.28);
       margin-bottom:12px;
+      transition: border .12s ease, transform .12s ease;
     }
-    .card:hover{
-      border-color: rgba(255,255,255,.16);
+    .card:hover{ transform: translateY(-1px); border-color: rgba(255,255,255,.18); }
+    .card.highlight{
+      border-color: rgba(34,211,238,.45);
+      background: linear-gradient(180deg, rgba(34,211,238,.12), rgba(255,255,255,.03));
+      box-shadow: 0 18px 45px rgba(0,0,0,.35);
     }
-    .card-top{
-      display:flex; gap:10px; align-items:flex-start;
+    .cardTop{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
     }
     .badge{
       padding:7px 10px;
       border-radius: 999px;
-      border:1px solid rgba(255,255,255,.10);
+      border:1px solid rgba(255,255,255,.12);
       background: rgba(0,0,0,.18);
       font-size:12px;
-      font-family:var(--mono);
+      font-family: var(--mono);
       white-space:nowrap;
     }
-    .badge.good{border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.10)}
-    .badge.warn{border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.10)}
-    .badge.bad{border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.10)}
+    .badge.good{ border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.10); }
+    .badge.warn{ border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.10); }
+    .badge.bad{ border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.10); }
 
-    .title2{
+    .title{
       margin:0;
       font-size:14px;
+      font-weight: 850;
       letter-spacing:.2px;
       line-height:1.2;
     }
-    .sub2{
+    .sub{
       margin-top:4px;
       font-size:12px;
-      color:var(--muted);
+      color: var(--muted);
       line-height:1.25;
     }
-    .meta2{
+    .metaPills{
       margin-top:10px;
       display:flex;
       flex-wrap:wrap;
@@ -400,146 +448,159 @@
       align-items:center;
     }
     .pill{
-      padding:6px 9px;
-      border-radius: 999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
-      font-size:12px;
-      color: rgba(229,231,235,.95);
       display:inline-flex;
       align-items:center;
       gap:8px;
-      user-select:none;
+      padding:6px 9px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      font-size:12px;
     }
-    .pill b{font-family:var(--mono); font-weight:700}
-    .muted{color:var(--muted)}
-    .row-actions{
+    .pill b{ font-family: var(--mono); font-weight: 850; }
+    .muted{ color: var(--muted); }
+    .actions{
       margin-top:10px;
       display:flex;
-      gap:8px;
       flex-wrap:wrap;
-    }
-    .btn.sm{
-      padding:9px 10px;
-      border-radius: 12px;
-      font-size:12px;
-    }
-    .btn.ghost{
-      background: rgba(255,255,255,.04);
+      gap:8px;
     }
 
-    /* Map panel */
-    .mapwrap{
-      position:relative;
-      min-height:0;
-      overflow:hidden;
-    }
-    #map{
-      height:100%;
-      width:100%;
-      border-radius: var(--radius);
-    }
-    .map-overlay{
+    /* Map */
+    .mapWrap{ position:relative; min-height:0; }
+    #map{ width:100%; height:100%; border-radius: var(--radius); }
+    .mapHUD{
       position:absolute;
       top:12px; left:12px;
-      display:flex; gap:10px; flex-wrap:wrap;
-      z-index:500;
+      z-index: 500;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
       pointer-events:none;
     }
-    .chipinfo{
+    .hudChip{
       pointer-events:none;
       padding:9px 10px;
-      border-radius: 14px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(10,20,38,.65);
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(5,8,22,.60);
       backdrop-filter: blur(10px);
+      box-shadow: 0 12px 28px rgba(0,0,0,.28);
       font-size:12px;
-      color: rgba(229,231,235,.95);
-      box-shadow: 0 10px 24px rgba(0,0,0,.25);
+      color: rgba(234,240,255,.95);
     }
-    .chipinfo b{font-family:var(--mono)}
-    .map-actions{
+    .hudChip b{ font-family: var(--mono); }
+
+    .mapBtns{
       position:absolute;
-      right:12px; top:12px;
+      top:12px; right:12px;
       z-index:500;
       display:flex;
       flex-direction:column;
       gap:8px;
     }
-    .map-actions .btn{pointer-events:auto}
-    .leaflet-control-zoom{border-radius:12px; overflow:hidden}
-    .leaflet-control-attribution{background: rgba(0,0,0,.2)!important; color: rgba(229,231,235,.75)!important}
-    .leaflet-control-attribution a{color: rgba(34,211,238,.9)!important}
+    .mapBtns .btn{ pointer-events:auto; }
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      bottom:18px; left:50%;
+      transform: translateX(-50%);
+      z-index: 2000;
+      max-width: min(920px, calc(100% - 24px));
+      display:none;
+      padding: 12px 14px;
+      border-radius: 18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(5,8,22,.72);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow2);
+      font-size: 13px;
+      color: rgba(234,240,255,.95);
+    }
+    .toast strong{ color: white; }
+    .toast .hint{ color: var(--muted); margin-top:4px; font-size:12px; }
+
+    /* Loading spinner */
+    .spin{
+      width:16px; height:16px;
+      border-radius:50%;
+      border:2px solid rgba(255,255,255,.25);
+      border-top-color: rgba(34,211,238,.9);
+      animation: spin2 .8s linear infinite;
+    }
+    @keyframes spin2{ to{ transform: rotate(360deg); } }
 
     /* Footer */
     footer{
-      border-top:1px solid var(--line);
-      background: rgba(10,20,38,.55);
-      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255,255,255,.10);
+      background: rgba(5,8,22,.55);
+      backdrop-filter: blur(12px);
     }
-    .footer-inner{
-      max-width:1200px;
+    .footerInner{
+      max-width:1240px;
       margin:0 auto;
-      padding:10px 16px;
+      padding: 10px 16px;
       display:flex;
-      gap:10px;
-      align-items:center;
       justify-content:space-between;
-      color: rgba(148,163,184,.9);
+      gap:10px;
+      flex-wrap:wrap;
       font-size:12px;
-    }
-    .footer-inner .right{
-      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-    .dotsep{
-      opacity:.5;
+      color: rgba(167,178,204,.95);
     }
 
     /* Modal */
-    .modal-backdrop{
+    .modalBackdrop{
       position:fixed;
       inset:0;
       background: rgba(0,0,0,.55);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       display:none;
       align-items:center;
       justify-content:center;
-      z-index:1000;
-      padding:18px;
+      z-index: 3000;
+      padding: 18px;
     }
     .modal{
-      width:min(720px, 100%);
-      border-radius: 20px;
-      border:1px solid rgba(255,255,255,.12);
-      background: linear-gradient(180deg, rgba(15,23,42,.92), rgba(15,23,42,.78));
-      box-shadow: 0 25px 90px rgba(0,0,0,.6);
+      width: min(760px, 100%);
+      border-radius: 22px;
+      border:1px solid rgba(255,255,255,.14);
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+      box-shadow: 0 30px 110px rgba(0,0,0,.65);
       overflow:hidden;
     }
-    .modal-header{
-      padding:14px 16px;
-      border-bottom:1px solid rgba(148,163,184,.14);
+    .modalHeader{
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.12);
       display:flex;
       align-items:center;
       justify-content:space-between;
       gap:10px;
+      background:
+        radial-gradient(600px 220px at 10% 0%, rgba(34,211,238,.18), transparent 55%),
+        radial-gradient(600px 220px at 90% 0%, rgba(167,139,250,.16), transparent 55%),
+        rgba(0,0,0,.10);
     }
-    .modal-header h3{
-      margin:0;
-      font-size:14px;
-      letter-spacing:.2px;
+    .modalHeader h3{ margin:0; font-size:14px; font-weight: 900; letter-spacing:.2px; }
+    .modalBody{ padding: 14px 16px; }
+    .modalActions{
+      padding: 14px 16px;
+      border-top: 1px solid rgba(255,255,255,.12);
+      display:flex;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+      gap:10px;
     }
-    .modal-body{padding:14px 16px}
-    .form-grid{
+    .formGrid{
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap:10px;
     }
     .field{
-      padding:10px 12px;
-      border-radius: 16px;
+      padding: 10px 12px;
+      border-radius: 18px;
       border:1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.04);
+      background: rgba(0,0,0,.12);
     }
     .field input, .field textarea{
       width:100%;
@@ -549,23 +610,15 @@
       color:var(--text);
       font-size:13px;
     }
-    .field textarea{min-height:88px; resize:vertical}
-    .modal-actions{
-      padding:14px 16px;
-      border-top:1px solid rgba(148,163,184,.14);
-      display:flex;
-      gap:10px;
-      justify-content:flex-end;
-      flex-wrap:wrap;
-    }
+    .field textarea{ min-height: 90px; resize: vertical; }
     .note{
-      margin-top:10px;
-      color: rgba(148,163,184,.92);
+      margin-top: 10px;
+      color: rgba(167,178,204,.95);
       font-size:12px;
       line-height:1.35;
     }
     .note code{
-      font-family:var(--mono);
+      font-family: var(--mono);
       font-size:11px;
       padding:2px 6px;
       border-radius: 10px;
@@ -575,52 +628,76 @@
 
     /* Responsive */
     @media (max-width: 980px){
-      body{overflow:auto}
-      .app{overflow:auto}
+      body{ overflow:auto; }
+      .app{ overflow:auto; height:auto; min-height:100%; }
       .main{
         grid-template-columns: 1fr;
         grid-template-rows: auto 520px;
-        overflow:visible;
+        height:auto;
+        overflow: visible;
       }
-      .brand{min-width:auto}
-      .topbar-inner{flex-wrap:wrap}
-      .search{min-width: 100%}
+      .searchbar{ min-width: 100%; }
+      .brand{ min-width: unset; }
+      #map{ height:520px; }
     }
+    @media (max-width: 520px){
+      .btn span.txt{ display:none; }
+      .kbd{ display:none; }
+      .formGrid{ grid-template-columns: 1fr; }
+    }
+
+    /* Leaflet controls */
+    .leaflet-control-zoom{ border-radius: 14px; overflow:hidden; }
+    .leaflet-control-attribution{
+      background: rgba(0,0,0,.22) !important;
+      color: rgba(234,240,255,.75) !important;
+      border-radius: 10px;
+      margin: 0 8px 8px 0 !important;
+    }
+    .leaflet-control-attribution a{ color: rgba(34,211,238,.92) !important; }
   </style>
 </head>
+
 <body>
   <div class="app">
     <div class="topbar">
       <div class="topbar-inner">
-        <div class="brand" title="Clinic Wait Time Finder">
+        <div class="brand">
           <div class="logo" aria-hidden="true"></div>
           <div>
             <h1>Clinic Wait Time Finder</h1>
-            <small>Compare walk-in clinics by wait time, distance, hours, and services</small>
+            <small>Fast, colourful, and actually usable. Compare wait, distance, hours, and services.</small>
           </div>
         </div>
 
-        <div class="search">
-          <div class="input">
-            <input id="addressInput" autocomplete="off" placeholder="Enter an address or city (e.g., 482 Front St W, Toronto)"/>
-            <div class="kbd">⌘/Ctrl K</div>
+        <div class="searchbar">
+          <div class="inputWrap">
+            <svg class="searchIcon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.9"/>
+              <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+            </svg>
+
+            <input id="addressInput" class="searchInput" autocomplete="off"
+              placeholder="Search an address or city (e.g., 482 Front St W, Toronto)"/>
+
+            <div class="kbd">Ctrl/⌘ K</div>
 
             <div id="suggestBox" class="suggest" role="listbox" aria-label="Address suggestions"></div>
           </div>
 
           <button class="btn primary" id="btnUseLocation" title="Use my location">
-            <svg class="icon" viewBox="0 0 24 24" fill="none">
-              <path d="M12 22s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z" stroke="currentColor" stroke-width="1.8"/>
-              <path d="M12 12.8a2.1 2.1 0 1 0 0-4.2 2.1 2.1 0 0 0 0 4.2Z" stroke="currentColor" stroke-width="1.8"/>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 22s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z" stroke="currentColor" stroke-width="1.9"/>
+              <path d="M12 12.8a2.1 2.1 0 1 0 0-4.2 2.1 2.1 0 0 0 0 4.2Z" stroke="currentColor" stroke-width="1.9"/>
             </svg>
-            Use Location
+            <span class="txt">Use Location</span>
           </button>
 
           <button class="btn" id="btnAddClinic" title="Add a clinic">
-            <svg class="icon" viewBox="0 0 24 24" fill="none">
-              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+            <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
-            Add Clinic
+            <span class="txt">Add Clinic</span>
           </button>
         </div>
       </div>
@@ -629,18 +706,18 @@
     <div class="main">
       <!-- Sidebar -->
       <div class="panel sidebar">
-        <div class="sidebar-header">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div class="sidebarHeader">
+          <div class="nearLine">
             <div>
-              <div style="font-size:12px; color:var(--muted)">Showing results near</div>
-              <div id="nearLabel" style="margin-top:4px; font-weight:750; letter-spacing:.2px;">Toronto, ON</div>
+              <div class="nearLabelSmall">Showing results near</div>
+              <div id="nearLabel" class="nearLabel">Toronto, ON</div>
             </div>
-            <button class="btn sm ghost" id="btnReset" title="Reset filters & view">
-              <svg class="icon" viewBox="0 0 24 24" fill="none">
-                <path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                <path d="M20 4v6h-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <button class="btn small" id="btnReset" title="Reset filters">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M20 12a8 8 0 1 1-2.34-5.66" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                <path d="M20 4v6h-6" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
               </svg>
-              Reset
+              <span class="txt">Reset</span>
             </button>
           </div>
 
@@ -650,15 +727,15 @@
               <div class="v" id="statCount">—</div>
             </div>
             <div class="stat">
-              <div class="k">Best option</div>
+              <div class="k">Best match</div>
               <div class="v" id="statBest">—</div>
             </div>
           </div>
         </div>
 
         <div class="filters">
-          <div class="filters-grid">
-            <div class="select">
+          <div class="grid">
+            <div class="box">
               <label for="sortBy">Sort by</label>
               <select id="sortBy">
                 <option value="best">Best overall</option>
@@ -668,7 +745,8 @@
                 <option value="updated">Recently updated</option>
               </select>
             </div>
-            <div class="select">
+
+            <div class="box">
               <label for="openNow">Hours</label>
               <select id="openNow">
                 <option value="any">Any</option>
@@ -677,9 +755,9 @@
               </select>
             </div>
 
-            <div class="range">
+            <div class="box">
               <label for="maxDistance">Max distance (km)</label>
-              <input id="maxDistance" type="range" min="1" max="25" value="12" />
+              <input id="maxDistance" type="range" min="1" max="25" value="12"/>
               <div class="meta">
                 <span>1</span>
                 <span id="maxDistanceLabel">12 km</span>
@@ -687,9 +765,9 @@
               </div>
             </div>
 
-            <div class="range">
+            <div class="box">
               <label for="maxWait">Max wait (minutes)</label>
-              <input id="maxWait" type="range" min="0" max="240" value="120" />
+              <input id="maxWait" type="range" min="0" max="240" value="120"/>
               <div class="meta">
                 <span>0</span>
                 <span id="maxWaitLabel">120 min</span>
@@ -697,26 +775,26 @@
               </div>
             </div>
 
-            <div class="chipset" style="grid-column:1 / -1;">
+            <div class="box" style="grid-column:1 / -1;">
               <label>Services</label>
               <div class="chips" id="serviceChips"></div>
             </div>
           </div>
 
           <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
-            <button class="btn sm" id="btnReportMode" title="Toggle community reports">
-              <svg class="icon" viewBox="0 0 24 24" fill="none">
-                <path d="M4 19V5a2 2 0 0 1 2-2h10l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" stroke="currentColor" stroke-width="1.8"/>
-                <path d="M8 13h8M8 9h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <button class="btn small" id="btnReportMode" title="Toggle community reports">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 19V5a2 2 0 0 1 2-2h10l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" stroke="currentColor" stroke-width="1.9"/>
+                <path d="M8 13h8M8 9h5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
               </svg>
-              Community Reports: <span id="reportModeLabel" style="font-family:var(--mono);">ON</span>
+              <span class="txt">Community:</span> <span id="reportModeLabel" style="font-family:var(--mono); font-weight:900;">ON</span>
             </button>
 
-            <button class="btn sm danger" id="btnClearLocal" title="Clear your locally saved clinics and reports">
-              <svg class="icon" viewBox="0 0 24 24" fill="none">
-                <path d="M9 3h6m-8 4h10m-9 0 1 14h6l1-14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            <button class="btn small danger" id="btnClearLocal" title="Clear locally saved clinics/reports">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M9 3h6m-8 4h10m-9 0 1 14h6l1-14" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
               </svg>
-              Clear Local Data
+              <span class="txt">Clear Data</span>
             </button>
           </div>
         </div>
@@ -725,25 +803,25 @@
       </div>
 
       <!-- Map -->
-      <div class="panel mapwrap">
-        <div class="map-overlay">
-          <div class="chipinfo">Tip: click a clinic card to zoom + highlight on the map.</div>
-          <div class="chipinfo">Wait times are <b>estimated</b> and improve with community updates.</div>
+      <div class="panel mapWrap">
+        <div class="mapHUD">
+          <div class="hudChip">Tip: click a clinic card to highlight it on the map.</div>
+          <div class="hudChip">Wait times are <b>estimates</b> (improve with reports).</div>
         </div>
 
-        <div class="map-actions">
-          <button class="btn sm" id="btnFit" title="Fit map to results">
-            <svg class="icon" viewBox="0 0 24 24" fill="none">
-              <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        <div class="mapBtns">
+          <button class="btn small" id="btnFit" title="Fit map to results">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
             </svg>
-            Fit
+            <span class="txt">Fit</span>
           </button>
-          <button class="btn sm" id="btnCenter" title="Center on search / your location">
-            <svg class="icon" viewBox="0 0 24 24" fill="none">
-              <path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-              <path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.8"/>
+          <button class="btn small" id="btnCenter" title="Center on search location">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+              <path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.9"/>
             </svg>
-            Center
+            <span class="txt">Center</span>
           </button>
         </div>
 
@@ -752,962 +830,892 @@
     </div>
 
     <footer>
-      <div class="footer-inner">
+      <div class="footerInner">
         <div>© 2026 Athir Global Partners</div>
-        <div class="right">
-          <span class="muted">Data note:</span>
-          <span class="muted">This demo uses sample clinics + any clinics you add.</span>
-          <span class="dotsep">•</span>
-          <span class="muted">Geocoding via OpenStreetMap Nominatim (rate-limited).</span>
-        </div>
+        <div class="muted">Geocoding: OpenStreetMap Nominatim (rate-limited). If search fails, try a more specific address.</div>
       </div>
     </footer>
   </div>
 
-  <!-- Modal: Add Clinic / Report Wait -->
-  <div class="modal-backdrop" id="modalBackdrop" role="dialog" aria-modal="true">
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Modal -->
+  <div class="modalBackdrop" id="modalBackdrop" role="dialog" aria-modal="true">
     <div class="modal">
-      <div class="modal-header">
-        <h3 id="modalTitle">Add Clinic</h3>
-        <button class="btn sm" id="btnCloseModal">Close</button>
+      <div class="modalHeader">
+        <h3 id="modalTitle">Modal</h3>
+        <button class="btn small" id="btnCloseModal">Close</button>
       </div>
-      <div class="modal-body" id="modalBody"></div>
-      <div class="modal-actions" id="modalActions"></div>
+      <div class="modalBody" id="modalBody"></div>
+      <div class="modalActions" id="modalActions"></div>
     </div>
   </div>
 
-  <script>
-    /***************
-     * Clinic Wait Time Finder (Single-File Website)
-     * - Leaflet map + markers
-     * - Address autocomplete (Nominatim) with debounce and minimum chars
-     * - Filters + sorting
-     * - "Community wait reports" stored locally (localStorage)
-     * - Add clinics locally (localStorage)
-     *
-     * NOTE: For a real production version with verified wait times and full clinic coverage,
-     * you’d connect a backend + a clinic data source / partner clinics.
-     ***************/
+<script>
+/**
+ * Clinic Wait Time Finder — Improved, working single-file website
+ * Key fixes:
+ * - Search reliability: proper debounce + abort previous requests + no forbidden headers
+ * - Clear user feedback: toast + loading indicator inside suggestions
+ * - Keyboard nav in suggestions: ↑ ↓ Enter Esc
+ * - Better fit-to-results (uses actual marker bounds)
+ * - More robust UI states and mobile map sizing
+ */
 
-    // ---------- Utilities ----------
-    const $ = (sel) => document.querySelector(sel);
-    const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+const $ = (s) => document.querySelector(s);
+const clamp = (n,a,b)=>Math.max(a,Math.min(b,n));
+const fmtKm = (km)=> km < 1 ? `${Math.round(km*1000)} m` : `${km.toFixed(km<10?1:0)} km`;
+const fmtMin = (m)=> `${Math.round(m)} min`;
 
-    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-    const fmtKm = (km) => km < 1 ? `${Math.round(km*1000)} m` : `${km.toFixed(km < 10 ? 1 : 0)} km`;
-    const fmtMin = (m) => `${Math.round(m)} min`;
-    const now = () => new Date();
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, s=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;" }[s]));
+}
+function escapeAttr(str){ return escapeHtml(str).replace(/"/g,"&quot;"); }
 
-    // Haversine (km)
-    function distanceKm(lat1, lon1, lat2, lon2){
-      const R = 6371;
-      const dLat = (lat2-lat1) * Math.PI/180;
-      const dLon = (lon2-lon1) * Math.PI/180;
-      const a =
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return R * c;
-    }
+// ---------- Toast ----------
+let toastTimer = null;
+function toast(msg, hint=""){
+  const t = $("#toast");
+  t.innerHTML = `<div><strong>${escapeHtml(msg)}</strong></div>` + (hint ? `<div class="hint">${escapeHtml(hint)}</div>` : "");
+  t.style.display = "block";
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>{ t.style.display="none"; }, 3800);
+}
 
-    function uid(){
-      return Math.random().toString(16).slice(2) + Date.now().toString(16);
-    }
+// ---------- Local storage ----------
+const LS = {
+  clinics: "cw_clinics_local_v2",
+  reports: "cw_reports_v2",
+  settings: "cw_settings_v2"
+};
+function loadJSON(key, fallback){
+  try{ const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch{ return fallback; }
+}
+function saveJSON(key,val){ localStorage.setItem(key, JSON.stringify(val)); }
 
-    // Time helpers
-    function minutesSince(ts){
-      const d = new Date(ts);
-      return (Date.now() - d.getTime()) / 60000;
-    }
-    function timeAgo(ts){
-      const m = minutesSince(ts);
-      if (m < 1) return "just now";
-      if (m < 60) return `${Math.round(m)}m ago`;
-      const h = m/60;
-      if (h < 24) return `${Math.round(h)}h ago`;
-      const dd = h/24;
-      return `${Math.round(dd)}d ago`;
-    }
+// ---------- Sample data (demo) ----------
+const SAMPLE_CLINICS = [
+  { id:"s1", name:"Front & Spadina Walk-In Clinic", address:"Front St W & Spadina Ave, Toronto, ON", lat:43.64262, lng:-79.38705, phone:"(416) 555-0123", services:["Walk-in","Family Doctor","Vaccines","Bloodwork"], rating:4.4, baseWaitMin:38, lastUpdated: new Date(Date.now()-45*60000).toISOString(),
+    hours:{ mon:["09:00","19:00"], tue:["09:00","19:00"], wed:["09:00","19:00"], thu:["09:00","19:00"], fri:["09:00","18:00"], sat:["10:00","16:00"], sun:null } },
+  { id:"s2", name:"Queen West Medical Walk-In", address:"Queen St W, Toronto, ON", lat:43.64842, lng:-79.40415, phone:"(416) 555-0199", services:["Walk-in","Minor Injuries","STD Testing","Prescriptions"], rating:4.1, baseWaitMin:52, lastUpdated: new Date(Date.now()-90*60000).toISOString(),
+    hours:{ mon:["10:00","20:00"], tue:["10:00","20:00"], wed:["10:00","20:00"], thu:["10:00","20:00"], fri:["10:00","19:00"], sat:["10:00","17:00"], sun:["11:00","16:00"] } },
+  { id:"s3", name:"Downtown Urgent Care (Non-ER)", address:"Bay St, Toronto, ON", lat:43.65390, lng:-79.38530, phone:"(416) 555-0777", services:["Urgent Care","Minor Injuries","Stitches","X-ray Nearby"], rating:4.6, baseWaitMin:28, lastUpdated: new Date(Date.now()-20*60000).toISOString(),
+    hours:{ mon:["08:00","22:00"], tue:["08:00","22:00"], wed:["08:00","22:00"], thu:["08:00","22:00"], fri:["08:00","22:00"], sat:["09:00","20:00"], sun:["09:00","20:00"] } },
+  { id:"s4", name:"Harbourfront Family Health Clinic", address:"Harbour St, Toronto, ON", lat:43.64075, lng:-79.38192, phone:"(416) 555-0444", services:["Family Doctor","Walk-in","Vaccines","Referrals"], rating:4.3, baseWaitMin:44, lastUpdated: new Date(Date.now()-140*60000).toISOString(),
+    hours:{ mon:["09:00","17:00"], tue:["09:00","17:00"], wed:["09:00","17:00"], thu:["09:00","17:00"], fri:["09:00","17:00"], sat:null, sun:null } },
+  { id:"s5", name:"Bloor-Yonge Walk-In & Diagnostics", address:"Bloor St E, Toronto, ON", lat:43.67170, lng:-79.38668, phone:"(416) 555-0333", services:["Walk-in","Bloodwork","Vaccines","Forms"], rating:4.0, baseWaitMin:63, lastUpdated: new Date(Date.now()-55*60000).toISOString(),
+    hours:{ mon:["08:30","18:30"], tue:["08:30","18:30"], wed:["08:30","18:30"], thu:["08:30","18:30"], fri:["08:30","18:00"], sat:["09:00","14:00"], sun:null } }
+];
 
-    // ---------- Local Storage ----------
-    const LS = {
-      clinics: "cw_clinics_local_v1",
-      reports: "cw_reports_v1",
-      settings: "cw_settings_v1",
-    };
-    function loadJSON(key, fallback){
-      try{
-        const v = localStorage.getItem(key);
-        return v ? JSON.parse(v) : fallback;
-      }catch(e){ return fallback; }
-    }
-    function saveJSON(key, val){
-      localStorage.setItem(key, JSON.stringify(val));
-    }
+const ALL_SERVICES = [
+  "Walk-in","Urgent Care","Family Doctor","Minor Injuries","Vaccines","Bloodwork",
+  "STD Testing","Prescriptions","Referrals","Forms","Stitches","X-ray Nearby"
+];
 
-    // ---------- Sample Clinic Data ----------
-    // (These are sample clinics for a working demo. Add/edit your own clinics in the UI.)
-    const SAMPLE_CLINICS = [
-      {
-        id:"s1",
-        name:"Front & Spadina Walk-In Clinic",
-        address:"Near Front St W & Spadina Ave, Toronto, ON",
-        lat:43.64262, lng:-79.38705,
-        phone:"(416) 555-0123",
-        website:"",
-        services:["Walk-in", "Family Doctor", "Vaccines", "Bloodwork"],
-        hours: { // local time
-          mon:["09:00","19:00"], tue:["09:00","19:00"], wed:["09:00","19:00"], thu:["09:00","19:00"], fri:["09:00","18:00"], sat:["10:00","16:00"], sun:null
-        },
-        rating:4.4,
-        baseWaitMin:38,
-        lastUpdated: new Date(Date.now() - 45*60000).toISOString()
-      },
-      {
-        id:"s2",
-        name:"Queen West Medical Walk-In",
-        address:"Queen St W, Toronto, ON",
-        lat:43.64842, lng:-79.40415,
-        phone:"(416) 555-0199",
-        website:"",
-        services:["Walk-in", "Minor Injuries", "STD Testing", "Prescriptions"],
-        hours:{
-          mon:["10:00","20:00"], tue:["10:00","20:00"], wed:["10:00","20:00"], thu:["10:00","20:00"], fri:["10:00","19:00"], sat:["10:00","17:00"], sun:["11:00","16:00"]
-        },
-        rating:4.1,
-        baseWaitMin:52,
-        lastUpdated: new Date(Date.now() - 90*60000).toISOString()
-      },
-      {
-        id:"s3",
-        name:"Downtown Urgent Care (Non-ER)",
-        address:"Bay St, Toronto, ON",
-        lat:43.65390, lng:-79.38530,
-        phone:"(416) 555-0777",
-        website:"",
-        services:["Urgent Care", "X-ray Nearby", "Minor Injuries", "Stitches"],
-        hours:{
-          mon:["08:00","22:00"], tue:["08:00","22:00"], wed:["08:00","22:00"], thu:["08:00","22:00"], fri:["08:00","22:00"], sat:["09:00","20:00"], sun:["09:00","20:00"]
-        },
-        rating:4.6,
-        baseWaitMin:28,
-        lastUpdated: new Date(Date.now() - 20*60000).toISOString()
-      },
-      {
-        id:"s4",
-        name:"Harbourfront Family Health Clinic",
-        address:"Harbour St, Toronto, ON",
-        lat:43.64075, lng:-79.38192,
-        phone:"(416) 555-0444",
-        website:"",
-        services:["Family Doctor", "Walk-in", "Vaccines", "Referrals"],
-        hours:{
-          mon:["09:00","17:00"], tue:["09:00","17:00"], wed:["09:00","17:00"], thu:["09:00","17:00"], fri:["09:00","17:00"], sat:null, sun:null
-        },
-        rating:4.3,
-        baseWaitMin:44,
-        lastUpdated: new Date(Date.now() - 140*60000).toISOString()
-      },
-      {
-        id:"s5",
-        name:"Bloor-Yonge Walk-In & Diagnostics",
-        address:"Bloor St E, Toronto, ON",
-        lat:43.67170, lng:-79.38668,
-        phone:"(416) 555-0333",
-        website:"",
-        services:["Walk-in", "Bloodwork", "Vaccines", "Forms"],
-        hours:{
-          mon:["08:30","18:30"], tue:["08:30","18:30"], wed:["08:30","18:30"], thu:["08:30","18:30"], fri:["08:30","18:00"], sat:["09:00","14:00"], sun:null
-        },
-        rating:4.0,
-        baseWaitMin:63,
-        lastUpdated: new Date(Date.now() - 55*60000).toISOString()
+// ---------- State ----------
+let state = {
+  center: { lat:43.6532, lng:-79.3832, label:"Toronto, ON" },
+  userLocation: null,
+  reportMode: true,
+  selectedServices: new Set(),
+  sortBy: "best",
+  openNow: "any",
+  maxDistanceKm: 12,
+  maxWaitMin: 120,
+  highlightedId: null
+};
+
+// Restore settings
+(function(){
+  const s = loadJSON(LS.settings, null);
+  if (s && typeof s === "object"){
+    state = { ...state, ...s, selectedServices: new Set(s.selectedServices || []) };
+  }
+})();
+function persistSettings(){
+  saveJSON(LS.settings, {
+    center: state.center,
+    userLocation: state.userLocation,
+    reportMode: state.reportMode,
+    selectedServices: Array.from(state.selectedServices),
+    sortBy: state.sortBy,
+    openNow: state.openNow,
+    maxDistanceKm: state.maxDistanceKm,
+    maxWaitMin: state.maxWaitMin
+  });
+}
+
+function getAllClinics(){
+  const local = loadJSON(LS.clinics, []);
+  const byId = new Map();
+  for (const c of SAMPLE_CLINICS) byId.set(c.id, c);
+  for (const c of local) byId.set(c.id, c);
+  return Array.from(byId.values());
+}
+function getReports(){ return loadJSON(LS.reports, {}); }
+function addReport(clinicId, minutes){
+  const reports = getReports();
+  if (!reports[clinicId]) reports[clinicId] = [];
+  reports[clinicId].unshift({ minutes: clamp(Number(minutes)||0, 0, 600), ts: new Date().toISOString() });
+  reports[clinicId] = reports[clinicId].slice(0, 40);
+  saveJSON(LS.reports, reports);
+}
+
+function minutesSince(ts){ return (Date.now() - new Date(ts).getTime()) / 60000; }
+function timeAgo(ts){
+  const m = minutesSince(ts);
+  if (m < 1) return "just now";
+  if (m < 60) return `${Math.round(m)}m ago`;
+  const h = m/60;
+  if (h < 24) return `${Math.round(h)}h ago`;
+  return `${Math.round(h/24)}d ago`;
+}
+
+// ---------- Distance (Haversine km) ----------
+function distanceKm(lat1, lon1, lat2, lon2){
+  const R = 6371;
+  const dLat = (lat2-lat1) * Math.PI/180;
+  const dLon = (lon2-lon1) * Math.PI/180;
+  const a =
+    Math.sin(dLat/2)**2 +
+    Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// ---------- Hours / open now ----------
+const DOW = ["sun","mon","tue","wed","thu","fri","sat"];
+function parseHM(hm){ const [h,m] = hm.split(":").map(Number); return h*60 + m; }
+function getOpenInfo(hours){
+  const d = new Date();
+  const key = DOW[d.getDay()];
+  const range = hours?.[key] || null;
+  if (!range) return { status:"closed", closesInMin:null, todayRange:null };
+  const [openHM, closeHM] = range;
+  const openM = parseHM(openHM);
+  const closeM = parseHM(closeHM);
+  const curM = d.getHours()*60 + d.getMinutes();
+
+  if (curM < openM || curM >= closeM) return { status:"closed", closesInMin:null, todayRange:range };
+  const closesIn = closeM - curM;
+  if (closesIn <= 60) return { status:"closingSoon", closesInMin: closesIn, todayRange:range };
+  return { status:"open", closesInMin: closesIn, todayRange:range };
+}
+
+// ---------- Wait estimation ----------
+function estimateWait(clinic){
+  let base = Number(clinic.baseWaitMin || 45);
+
+  const ageM = clinic.lastUpdated ? minutesSince(clinic.lastUpdated) : 180;
+  base += clamp((ageM - 30)/6, 0, 40);
+
+  if (state.reportMode){
+    const reports = (getReports()[clinic.id] || []);
+    if (reports.length){
+      let sum=0, wsum=0;
+      for (const r of reports){
+        const w = clamp(6 - minutesSince(r.ts)/20, 0.6, 6); // fades over ~2 hours
+        sum += r.minutes * w; wsum += w;
       }
-    ];
-
-    // ---------- Services (chips) ----------
-    const ALL_SERVICES = [
-      "Walk-in",
-      "Urgent Care",
-      "Family Doctor",
-      "Minor Injuries",
-      "Vaccines",
-      "Bloodwork",
-      "STD Testing",
-      "Prescriptions",
-      "Referrals",
-      "Forms",
-      "Stitches",
-      "X-ray Nearby",
-    ];
-
-    // ---------- State ----------
-    let state = {
-      center: { lat:43.6532, lng:-79.3832, label:"Toronto, ON" },
-      userLocation: null, // {lat,lng}
-      reportMode: true,
-      selectedServices: new Set(),
-      sortBy: "best",
-      openNow: "any",
-      maxDistanceKm: 12,
-      maxWaitMin: 120,
-      highlightedId: null
-    };
-
-    // Load settings
-    (function initSettings(){
-      const s = loadJSON(LS.settings, null);
-      if (s && typeof s === "object"){
-        state = {
-          ...state,
-          ...s,
-          selectedServices: new Set((s.selectedServices || []))
-        };
-      }
-    })();
-
-    function persistSettings(){
-      saveJSON(LS.settings, {
-        center: state.center,
-        userLocation: state.userLocation,
-        reportMode: state.reportMode,
-        selectedServices: Array.from(state.selectedServices),
-        sortBy: state.sortBy,
-        openNow: state.openNow,
-        maxDistanceKm: state.maxDistanceKm,
-        maxWaitMin: state.maxWaitMin
-      });
+      const reported = sum/(wsum||1);
+      const blend = clamp(reports.length/8, 0.25, 0.85);
+      base = base*(1-blend) + reported*blend;
     }
+  }
 
-    // Clinics: sample + local
-    function getAllClinics(){
-      const localClinics = loadJSON(LS.clinics, []);
-      // Avoid ID collisions
-      const byId = new Map();
-      for (const c of SAMPLE_CLINICS) byId.set(c.id, c);
-      for (const c of localClinics) byId.set(c.id, c);
-      return Array.from(byId.values());
-    }
+  const h = new Date().getHours() + new Date().getMinutes()/60;
+  const peak = Math.exp(-Math.pow((h-11)/2.6,2))*18 + Math.exp(-Math.pow((h-18)/2.4,2))*12;
+  base += peak;
 
-    // Reports: { [clinicId]: [{minutes, ts}] }
-    function getReports(){
-      return loadJSON(LS.reports, {});
-    }
-    function addReport(clinicId, minutes){
-      const reports = getReports();
-      if (!reports[clinicId]) reports[clinicId] = [];
-      reports[clinicId].unshift({ minutes: clamp(Number(minutes)||0, 0, 600), ts: new Date().toISOString() });
-      // Keep last 40 for sanity
-      reports[clinicId] = reports[clinicId].slice(0, 40);
-      saveJSON(LS.reports, reports);
-    }
+  return clamp(base, 0, 240);
+}
+function waitBadge(waitMin){
+  if (waitMin <= 25) return { cls:"good", text:`~${fmtMin(waitMin)}` };
+  if (waitMin <= 60) return { cls:"warn", text:`~${fmtMin(waitMin)}` };
+  return { cls:"bad", text:`~${fmtMin(waitMin)}` };
+}
 
-    // ---------- Hours / Open Now ----------
-    const DOW = ["sun","mon","tue","wed","thu","fri","sat"];
-    function parseHM(hm){
-      const [h,m] = hm.split(":").map(Number);
-      return h*60 + m;
-    }
-    function getOpenInfo(hours){
-      // returns { status: "open"/"closed"/"closingSoon", closesInMin, opensInMin, todayRange }
-      const d = now();
-      const key = DOW[d.getDay()];
-      const range = hours?.[key] || null;
-      if (!range){
-        return { status:"closed", closesInMin:null, opensInMin:null, todayRange:null };
-      }
-      const [openHM, closeHM] = range;
-      const openM = parseHM(openHM);
-      const closeM = parseHM(closeHM);
-      const curM = d.getHours()*60 + d.getMinutes();
+// Score (lower is better)
+function scoreClinic(c){
+  const dist = c._distanceKm ?? 999;
+  const wait = c._waitMin ?? 999;
+  const rating = c.rating || 0;
+  const open = c._open?.status || "closed";
 
-      if (curM < openM){
-        return { status:"closed", closesInMin:null, opensInMin: openM-curM, todayRange:range };
-      }
-      if (curM >= closeM){
-        return { status:"closed", closesInMin:null, opensInMin:null, todayRange:range };
-      }
-      const closesIn = closeM - curM;
-      if (closesIn <= 60){
-        return { status:"closingSoon", closesInMin: closesIn, opensInMin:null, todayRange:range };
-      }
-      return { status:"open", closesInMin: closesIn, opensInMin:null, todayRange:range };
-    }
+  const openPenalty = open === "open" ? -10 : (open === "closingSoon" ? -5 : 18);
+  const distScore = clamp(dist, 0, 25) * 3.2;
+  const waitScore = clamp(wait, 0, 240) * 1.0;
+  const ratingPenalty = (5 - clamp(rating, 0, 5)) * 6.0;
+  const stale = c.lastUpdated ? clamp((minutesSince(c.lastUpdated)-30)/10, 0, 12) : 12;
 
-    // ---------- Wait time estimation ----------
-    function estimateWait(clinic){
-      // Start with base
-      let base = Number(clinic.baseWaitMin || 45);
+  return distScore + waitScore + ratingPenalty + openPenalty + stale;
+}
 
-      // Degrade estimate if last updated is old
-      const ageM = clinic.lastUpdated ? minutesSince(clinic.lastUpdated) : 180;
-      const stalenessPenalty = clamp((ageM - 30) / 6, 0, 40); // up to +40 min
-      base += stalenessPenalty;
+// ---------- Map ----------
+const map = L.map("map", { zoomControl:true, preferCanvas:true });
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  maxZoom: 19,
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
-      // Community reports (weighted recent)
-      if (state.reportMode){
-        const reports = getReports()[clinic.id] || [];
-        if (reports.length){
-          // Weight by recency: newest has highest weight
-          let sum = 0, wsum = 0;
-          for (let i=0; i<reports.length; i++){
-            const r = reports[i];
-            const m = Math.max(0.5, 6 - minutesSince(r.ts)/20); // after ~120 min, weight ~0.5
-            const w = clamp(m, 0.5, 6);
-            sum += r.minutes * w;
-            wsum += w;
-          }
-          const reportedAvg = sum / (wsum || 1);
-          // Blend reported with base depending on report volume
-          const blend = clamp(reports.length / 8, 0.25, 0.85);
-          base = base*(1-blend) + reportedAvg*blend;
-        }
-      }
+const markersLayer = L.layerGroup().addTo(map);
+let centerMarker = null;
+let highlightCircle = null;
+let currentRendered = [];
 
-      // Mild time-of-day factor (peak in late morning & evening)
-      const h = now().getHours() + now().getMinutes()/60;
-      const peak =
-        Math.exp(-Math.pow((h-11.0)/2.6,2)) * 18 +
-        Math.exp(-Math.pow((h-18.0)/2.4,2)) * 12;
-      base += peak;
+function setMapCenter(lat,lng,zoom=13){
+  map.setView([lat,lng], zoom, { animate:true });
+  if (centerMarker) centerMarker.remove();
+  centerMarker = L.circleMarker([lat,lng], {
+    radius:7, weight:2,
+    color:"#22d3ee", fillColor:"#22d3ee", fillOpacity:0.22
+  }).addTo(map);
+}
 
-      // Clamp
-      return clamp(base, 0, 240);
-    }
+function highlightOnMap(c){
+  if (highlightCircle) highlightCircle.remove();
+  highlightCircle = L.circle([c.lat,c.lng], {
+    radius: 260,
+    weight: 2,
+    color: "#22d3ee",
+    fillColor: "#22d3ee",
+    fillOpacity: 0.06
+  }).addTo(map);
+}
 
-    function waitBadge(waitMin){
-      if (waitMin <= 25) return { cls:"good", text:`~${fmtMin(waitMin)}` };
-      if (waitMin <= 60) return { cls:"warn", text:`~${fmtMin(waitMin)}` };
-      return { cls:"bad", text:`~${fmtMin(waitMin)}` };
-    }
+// Fit bounds using actual clinics
+function fitToResults(){
+  if (!currentRendered.length){
+    setMapCenter(state.center.lat, state.center.lng, 12);
+    return;
+  }
+  const bounds = L.latLngBounds(currentRendered.map(c => [c.lat, c.lng]));
+  map.fitBounds(bounds.pad(0.18), { animate:true });
+}
 
-    // "Best overall" score (lower is better)
-    function scoreClinic(c){
-      const dist = c._distanceKm ?? 999;
-      const wait = c._waitMin ?? 999;
-      const rating = c.rating || 0;
-      const open = c._open?.status || "closed";
-
-      const openBonus = open === "open" ? -10 : (open === "closingSoon" ? -5 : 15);
-      const distScore = clamp(dist, 0, 25) * 3.2;
-      const waitScore = clamp(wait, 0, 240) * 1.0;
-      const ratingBonus = (5 - clamp(rating, 0, 5)) * 6.0; // lower rating => higher penalty
-
-      // Slight penalty for stale updates
-      const ageM = c.lastUpdated ? minutesSince(c.lastUpdated) : 240;
-      const stale = clamp((ageM-30)/10, 0, 12);
-
-      return distScore + waitScore + ratingBonus + openBonus + stale;
-    }
-
-    // ---------- Map ----------
-    const map = L.map("map", { zoomControl:true, preferCanvas:true });
-    const tile = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Marker layers
-    const markersLayer = L.layerGroup().addTo(map);
-    let highlightCircle = null;
-    let centerMarker = null;
-
-    function setMapCenter(lat, lng, zoom=13){
-      map.setView([lat, lng], zoom, { animate:true });
-      if (centerMarker) centerMarker.remove();
-      centerMarker = L.circleMarker([lat,lng], {
-        radius:7,
-        weight:2,
-        color:"#22d3ee",
-        fillColor:"#22d3ee",
-        fillOpacity:0.2
-      }).addTo(map);
-    }
-
-    // ---------- Render services chips ----------
-    function renderServiceChips(){
-      const host = $("#serviceChips");
-      host.innerHTML = "";
-      for (const s of ALL_SERVICES){
-        const el = document.createElement("div");
-        el.className = "chip" + (state.selectedServices.has(s) ? " on" : "");
-        el.innerHTML = `<span class="dot"></span><span>${s}</span>`;
-        el.addEventListener("click", ()=>{
-          if (state.selectedServices.has(s)) state.selectedServices.delete(s);
-          else state.selectedServices.add(s);
-          persistSettings();
-          renderServiceChips();
-          refresh();
-        });
-        host.appendChild(el);
-      }
-    }
-
-    // ---------- Filter / Sort / Compute ----------
-    function buildComputedClinics(){
-      const clinics = getAllClinics();
-      for (const c of clinics){
-        c._distanceKm = distanceKm(state.center.lat, state.center.lng, c.lat, c.lng);
-        c._waitMin = estimateWait(c);
-        c._open = getOpenInfo(c.hours || {});
-        c._score = scoreClinic(c);
-        c._updatedAgo = c.lastUpdated ? minutesSince(c.lastUpdated) : 9999;
-      }
-      return clinics;
-    }
-
-    function passesFilters(c){
-      if (c._distanceKm > state.maxDistanceKm) return false;
-
-      if (state.maxWaitMin > 0 && c._waitMin > state.maxWaitMin) return false;
-
-      if (state.openNow === "open" && !(c._open.status === "open" || c._open.status === "closingSoon")) return false;
-      if (state.openNow === "closing" && c._open.status !== "closingSoon") return false;
-
-      if (state.selectedServices.size){
-        const set = new Set((c.services || []).map(x=>x.trim()));
-        for (const s of state.selectedServices){
-          if (!set.has(s)) return false;
-        }
-      }
-      return true;
-    }
-
-    function sortClinics(list){
-      const s = state.sortBy;
-      const arr = [...list];
-      if (s === "distance") arr.sort((a,b)=> a._distanceKm - b._distanceKm);
-      else if (s === "wait") arr.sort((a,b)=> a._waitMin - b._waitMin);
-      else if (s === "rating") arr.sort((a,b)=> (b.rating||0) - (a.rating||0));
-      else if (s === "updated") arr.sort((a,b)=> a._updatedAgo - b._updatedAgo);
-      else arr.sort((a,b)=> a._score - b._score);
-      return arr;
-    }
-
-    // ---------- Render list + map ----------
-    function renderMarkers(clinics){
-      markersLayer.clearLayers();
-
-      const isHighlighted = (id) => state.highlightedId && id === state.highlightedId;
-
-      clinics.forEach(c=>{
-        const badge = waitBadge(c._waitMin);
-        const open = c._open.status;
-
-        // Marker style based on wait/open
-        const color = open === "closed" ? "#94a3b8" : (badge.cls === "good" ? "#22c55e" : badge.cls === "warn" ? "#f59e0b" : "#ef4444");
-        const fill = open === "closed" ? "#64748b" : color;
-
-        const marker = L.circleMarker([c.lat, c.lng], {
-          radius: isHighlighted(c.id) ? 11 : 8,
-          weight: isHighlighted(c.id) ? 3 : 2,
-          color: color,
-          fillColor: fill,
-          fillOpacity: open === "closed" ? 0.25 : 0.35
-        });
-
-        const openText = open === "open" ? "Open now" : (open === "closingSoon" ? `Closing in ${Math.round(c._open.closesInMin)}m` : "Closed");
-        const updatedText = c.lastUpdated ? `Updated ${timeAgo(c.lastUpdated)}` : "No update time";
-
-        const popup = `
-          <div style="font-family: ui-sans-serif, system-ui; line-height:1.3; min-width:220px;">
-            <div style="font-weight:800; margin-bottom:4px;">${escapeHtml(c.name)}</div>
-            <div style="color:#94a3b8; font-size:12px; margin-bottom:8px;">${escapeHtml(c.address || "")}</div>
-            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
-              <span style="padding:4px 8px; border-radius:999px; border:1px solid rgba(0,0,0,.12); background:rgba(0,0,0,.06); font-size:12px;"><b>Wait</b>: ~${Math.round(c._waitMin)}m</span>
-              <span style="padding:4px 8px; border-radius:999px; border:1px solid rgba(0,0,0,.12); background:rgba(0,0,0,.06); font-size:12px;">${openText}</span>
-              <span style="padding:4px 8px; border-radius:999px; border:1px solid rgba(0,0,0,.12); background:rgba(0,0,0,.06); font-size:12px;"><b>Dist</b>: ${fmtKm(c._distanceKm)}</span>
-            </div>
-            <div style="color:#94a3b8; font-size:12px;">${updatedText}</div>
-          </div>
-        `;
-        marker.bindPopup(popup, { closeButton:true });
-
-        marker.on("click", ()=>{
-          state.highlightedId = c.id;
-          renderMarkers(clinics);
-          highlightOnMap(c);
-          renderList(clinics);
-        });
-
-        marker.addTo(markersLayer);
-      });
-    }
-
-    function highlightOnMap(c){
-      if (highlightCircle) highlightCircle.remove();
-      highlightCircle = L.circle([c.lat, c.lng], {
-        radius: 250,
-        weight: 2,
-        color: "#22d3ee",
-        fillColor: "#22d3ee",
-        fillOpacity: 0.05
-      }).addTo(map);
-    }
-
-    function renderList(clinics){
-      const host = $("#clinicList");
-      host.innerHTML = "";
-
-      if (!clinics.length){
-        host.innerHTML = `
-          <div class="card">
-            <div style="font-weight:800; margin-bottom:6px;">No clinics match your filters.</div>
-            <div class="sub2">Try increasing max distance, increasing max wait, or removing a service filter.</div>
-          </div>
-        `;
-        $("#statCount").textContent = "0";
-        $("#statBest").textContent = "—";
-        return;
-      }
-
-      $("#statCount").textContent = String(clinics.length);
-      $("#statBest").textContent = clinics[0].name.length > 18 ? (clinics[0].name.slice(0,18)+"…") : clinics[0].name;
-
-      for (const c of clinics){
-        const badge = waitBadge(c._waitMin);
-        const open = c._open.status;
-        const openText = open === "open"
-          ? "Open now"
-          : (open === "closingSoon" ? `Closing in ${Math.round(c._open.closesInMin)}m` : "Closed");
-
-        const updatedText = c.lastUpdated ? `Updated ${timeAgo(c.lastUpdated)}` : "No update time";
-
-        const card = document.createElement("div");
-        card.className = "card";
-        card.style.borderColor = (state.highlightedId === c.id) ? "rgba(34,211,238,.42)" : "rgba(255,255,255,.10)";
-        card.style.background = (state.highlightedId === c.id)
-          ? "linear-gradient(180deg, rgba(34,211,238,.10), rgba(255,255,255,.03))"
-          : "linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03))";
-
-        const services = (c.services || []).slice(0,6);
-        const more = (c.services || []).length - services.length;
-
-        card.innerHTML = `
-          <div class="card-top">
-            <div class="badge ${badge.cls}">${badge.text}</div>
-            <div style="flex:1; min-width:0;">
-              <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
-                <h3 class="title2" title="${escapeAttr(c.name)}">${escapeHtml(c.name)}</h3>
-                <div class="badge ${open === "open" ? "good" : (open === "closingSoon" ? "warn" : "bad")}">${openText}</div>
-              </div>
-              <div class="sub2" title="${escapeAttr(c.address || "")}">${escapeHtml(c.address || "")}</div>
-
-              <div class="meta2">
-                <div class="pill"><span class="muted">Distance</span> <b>${fmtKm(c._distanceKm)}</b></div>
-                <div class="pill"><span class="muted">Rating</span> <b>${(c.rating || 0).toFixed(1)}</b></div>
-                <div class="pill"><span class="muted">Updated</span> <b>${escapeHtml(updatedText)}</b></div>
-              </div>
-
-              <div class="meta2" style="margin-top:8px;">
-                ${services.map(s=>`<span class="pill">${escapeHtml(s)}</span>`).join("")}
-                ${more > 0 ? `<span class="pill muted">+${more} more</span>` : ""}
-              </div>
-
-              <div class="row-actions">
-                <button class="btn sm primary" data-act="zoom" data-id="${escapeAttr(c.id)}">
-                  <svg class="icon" viewBox="0 0 24 24" fill="none">
-                    <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                  View
-                </button>
-
-                <button class="btn sm" data-act="directions" data-id="${escapeAttr(c.id)}">
-                  <svg class="icon" viewBox="0 0 24 24" fill="none">
-                    <path d="M10 21h4m-2-18v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                    <path d="M12 6c4 0 7 3 7 7 0 2.3-1 4.3-2.7 5.6l-.6.4c-1 .6-2 .9-3.7 1s-2.7-.4-3.7-1l-.6-.4C6 17.3 5 15.3 5 13c0-4 3-7 7-7Z" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M12 13.5 9.5 11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                  Directions
-                </button>
-
-                <button class="btn sm ghost" data-act="report" data-id="${escapeAttr(c.id)}">
-                  <svg class="icon" viewBox="0 0 24 24" fill="none">
-                    <path d="M4 19V5a2 2 0 0 1 2-2h10l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" stroke="currentColor" stroke-width="1.8"/>
-                    <path d="M8 13h8M8 9h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-                  </svg>
-                  Report wait
-                </button>
-              </div>
-            </div>
-          </div>
-        `;
-
-        card.addEventListener("click", (e)=>{
-          // clicking buttons should not trigger zoom double
-          if (e.target.closest("button")) return;
-          focusClinic(c.id);
-        });
-
-        host.appendChild(card);
-      }
-
-      // actions
-      host.querySelectorAll("button[data-act]").forEach(btn=>{
-        btn.addEventListener("click", (e)=>{
-          e.stopPropagation();
-          const id = btn.getAttribute("data-id");
-          const act = btn.getAttribute("data-act");
-          if (act === "zoom") focusClinic(id);
-          if (act === "directions") openDirections(id);
-          if (act === "report") openReportModal(id);
-        });
-      });
-    }
-
-    function focusClinic(id){
-      const clinics = currentRenderedClinics;
-      const c = clinics.find(x=>x.id === id) || buildComputedClinics().find(x=>x.id===id);
-      if (!c) return;
-      state.highlightedId = c.id;
-      setMapCenter(c.lat, c.lng, 15);
-      highlightOnMap(c);
-
-      // open popup for corresponding marker if possible
-      markersLayer.eachLayer(layer=>{
-        if (layer.getLatLng && layer.getLatLng().lat === c.lat && layer.getLatLng().lng === c.lng){
-          layer.openPopup();
-        }
-      });
-
-      renderMarkers(currentRenderedClinics);
-      renderList(currentRenderedClinics);
-    }
-
-    function openDirections(id){
-      const clinics = currentRenderedClinics.length ? currentRenderedClinics : buildComputedClinics();
-      const c = clinics.find(x=>x.id === id);
-      if (!c) return;
-
-      // Google Maps directions (works well on mobile)
-      const origin = state.userLocation
-        ? `${state.userLocation.lat},${state.userLocation.lng}`
-        : `${state.center.lat},${state.center.lng}`;
-      const dest = `${c.lat},${c.lng}`;
-      const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}&travelmode=driving`;
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
-
-    // ---------- Refresh pipeline ----------
-    let currentRenderedClinics = [];
-
-    function refresh(){
-      const all = buildComputedClinics();
-      const filtered = all.filter(passesFilters);
-      const sorted = sortClinics(filtered);
-
-      currentRenderedClinics = sorted;
-
-      renderMarkers(sorted);
-      renderList(sorted);
-
-      $("#maxDistanceLabel").textContent = `${state.maxDistanceKm} km`;
-      $("#maxWaitLabel").textContent = `${state.maxWaitMin} min`;
-      $("#nearLabel").textContent = state.center.label || `${state.center.lat.toFixed(4)}, ${state.center.lng.toFixed(4)}`;
-
+// ---------- Services chips ----------
+function renderServiceChips(){
+  const host = $("#serviceChips");
+  host.innerHTML = "";
+  for (const s of ALL_SERVICES){
+    const el = document.createElement("div");
+    el.className = "chip" + (state.selectedServices.has(s) ? " on" : "");
+    el.innerHTML = `<span class="dot"></span><span>${escapeHtml(s)}</span>`;
+    el.addEventListener("click", ()=>{
+      if (state.selectedServices.has(s)) state.selectedServices.delete(s);
+      else state.selectedServices.add(s);
       persistSettings();
+      renderServiceChips();
+      refresh();
+    });
+    host.appendChild(el);
+  }
+}
+
+// ---------- Compute / filter / sort ----------
+function buildComputed(){
+  const clinics = getAllClinics();
+  for (const c of clinics){
+    c._distanceKm = distanceKm(state.center.lat, state.center.lng, c.lat, c.lng);
+    c._open = getOpenInfo(c.hours || {});
+    c._waitMin = estimateWait(c);
+    c._updatedAgo = c.lastUpdated ? minutesSince(c.lastUpdated) : 9999;
+    c._score = scoreClinic(c);
+  }
+  return clinics;
+}
+
+function passesFilters(c){
+  if (c._distanceKm > state.maxDistanceKm) return false;
+  if (state.maxWaitMin > 0 && c._waitMin > state.maxWaitMin) return false;
+
+  if (state.openNow === "open" && !(c._open.status === "open" || c._open.status === "closingSoon")) return false;
+  if (state.openNow === "closing" && c._open.status !== "closingSoon") return false;
+
+  if (state.selectedServices.size){
+    const set = new Set((c.services || []).map(x=>x.trim()));
+    for (const s of state.selectedServices){
+      if (!set.has(s)) return false;
     }
+  }
+  return true;
+}
 
-    // Fit map to visible markers
-    function fitToResults(){
-      if (!currentRenderedClinics.length){
-        setMapCenter(state.center.lat, state.center.lng, 12);
-        return;
-      }
-      const group = L.featureGroup(
-        currentRenderedClinics.map(c => L.marker([c.lat,c.lng]))
-      );
-      try{
-        map.fitBounds(group.getBounds().pad(0.18), { animate:true });
-      }catch(e){
-        setMapCenter(state.center.lat, state.center.lng, 12);
-      }
+function sortClinics(list){
+  const s = state.sortBy;
+  const arr = [...list];
+  if (s === "distance") arr.sort((a,b)=> a._distanceKm - b._distanceKm);
+  else if (s === "wait") arr.sort((a,b)=> a._waitMin - b._waitMin);
+  else if (s === "rating") arr.sort((a,b)=> (b.rating||0) - (a.rating||0));
+  else if (s === "updated") arr.sort((a,b)=> a._updatedAgo - b._updatedAgo);
+  else arr.sort((a,b)=> a._score - b._score);
+  return arr;
+}
+
+// ---------- Render markers + list ----------
+function renderMarkers(clinics){
+  markersLayer.clearLayers();
+
+  clinics.forEach(c=>{
+    const badge = waitBadge(c._waitMin);
+    const open = c._open.status;
+
+    const color = open === "closed" ? "#a7b2cc"
+      : (badge.cls === "good" ? "#22c55e" : badge.cls === "warn" ? "#f59e0b" : "#ef4444");
+
+    const isHi = state.highlightedId === c.id;
+
+    const marker = L.circleMarker([c.lat, c.lng], {
+      radius: isHi ? 11 : 8,
+      weight: isHi ? 3 : 2,
+      color,
+      fillColor: color,
+      fillOpacity: open === "closed" ? 0.22 : 0.34
+    });
+
+    const openText = open === "open" ? "Open now"
+      : (open === "closingSoon" ? `Closing in ${Math.round(c._open.closesInMin)}m` : "Closed");
+
+    const popup = `
+      <div style="font-family: ui-sans-serif, system-ui; line-height:1.35; min-width:220px;">
+        <div style="font-weight:900; margin-bottom:4px;">${escapeHtml(c.name)}</div>
+        <div style="color:#94a3b8; font-size:12px; margin-bottom:8px;">${escapeHtml(c.address || "")}</div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px;">
+          <span style="padding:4px 8px; border-radius:999px; border:1px solid rgba(0,0,0,.12); background:rgba(0,0,0,.06); font-size:12px;"><b>Wait</b>: ~${Math.round(c._waitMin)}m</span>
+          <span style="padding:4px 8px; border-radius:999px; border:1px solid rgba(0,0,0,.12); background:rgba(0,0,0,.06); font-size:12px;">${openText}</span>
+          <span style="padding:4px 8px; border-radius:999px; border:1px solid rgba(0,0,0,.12); background:rgba(0,0,0,.06); font-size:12px;"><b>Dist</b>: ${fmtKm(c._distanceKm)}</span>
+        </div>
+        <div style="color:#94a3b8; font-size:12px;">Updated ${escapeHtml(c.lastUpdated ? timeAgo(c.lastUpdated) : "unknown")}</div>
+      </div>
+    `;
+    marker.bindPopup(popup);
+
+    marker.on("click", ()=>{
+      state.highlightedId = c.id;
+      highlightOnMap(c);
+      renderMarkers(clinics);
+      renderList(clinics);
+    });
+
+    marker.addTo(markersLayer);
+  });
+}
+
+function renderList(clinics){
+  const host = $("#clinicList");
+  host.innerHTML = "";
+
+  $("#statCount").textContent = String(clinics.length);
+  $("#statBest").textContent = clinics.length ? (clinics[0].name.length>18 ? clinics[0].name.slice(0,18)+"…" : clinics[0].name) : "—";
+
+  if (!clinics.length){
+    host.innerHTML = `
+      <div class="card">
+        <div class="title">No clinics match your filters.</div>
+        <div class="sub">Try increasing max distance/wait or removing service filters.</div>
+      </div>
+    `;
+    return;
+  }
+
+  for (const c of clinics){
+    const badge = waitBadge(c._waitMin);
+    const open = c._open.status;
+    const openText = open === "open" ? "Open now" : (open === "closingSoon" ? `Closing in ${Math.round(c._open.closesInMin)}m` : "Closed");
+    const updatedText = c.lastUpdated ? `Updated ${timeAgo(c.lastUpdated)}` : "No update time";
+
+    const services = (c.services || []).slice(0,6);
+    const more = (c.services || []).length - services.length;
+
+    const card = document.createElement("div");
+    card.className = "card" + (state.highlightedId === c.id ? " highlight" : "");
+    card.innerHTML = `
+      <div class="cardTop">
+        <div class="badge ${badge.cls}">${badge.text}</div>
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start;">
+            <h3 class="title" title="${escapeAttr(c.name)}">${escapeHtml(c.name)}</h3>
+            <div class="badge ${open === "open" ? "good" : (open === "closingSoon" ? "warn" : "bad")}">${openText}</div>
+          </div>
+          <div class="sub" title="${escapeAttr(c.address || "")}">${escapeHtml(c.address || "")}</div>
+
+          <div class="metaPills">
+            <div class="pill"><span class="muted">Distance</span> <b>${fmtKm(c._distanceKm)}</b></div>
+            <div class="pill"><span class="muted">Rating</span> <b>${(c.rating||0).toFixed(1)}</b></div>
+            <div class="pill"><span class="muted">Updated</span> <b>${escapeHtml(updatedText)}</b></div>
+          </div>
+
+          <div class="metaPills" style="margin-top:8px;">
+            ${services.map(s=>`<span class="pill">${escapeHtml(s)}</span>`).join("")}
+            ${more>0 ? `<span class="pill muted">+${more} more</span>` : ""}
+          </div>
+
+          <div class="actions">
+            <button class="btn small primary" data-act="view" data-id="${escapeAttr(c.id)}">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="currentColor" stroke-width="1.9"/>
+                <path d="M16.5 16.5 21 21" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+              </svg>
+              <span class="txt">View</span>
+            </button>
+
+            <button class="btn small" data-act="directions" data-id="${escapeAttr(c.id)}">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 3v3M12 18v3M3 12h3M18 12h3" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+                <path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="1.9"/>
+              </svg>
+              <span class="txt">Directions</span>
+            </button>
+
+            <button class="btn small" data-act="report" data-id="${escapeAttr(c.id)}">
+              <svg class="icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M4 19V5a2 2 0 0 1 2-2h10l4 4v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z" stroke="currentColor" stroke-width="1.9"/>
+                <path d="M8 13h8M8 9h5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+              </svg>
+              <span class="txt">Report</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    card.addEventListener("click", (e)=>{
+      if (e.target.closest("button")) return;
+      focusClinic(c.id);
+    });
+
+    host.appendChild(card);
+  }
+
+  host.querySelectorAll("button[data-act]").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      const id = btn.getAttribute("data-id");
+      const act = btn.getAttribute("data-act");
+      if (act === "view") focusClinic(id);
+      if (act === "directions") openDirections(id);
+      if (act === "report") openReportModal(id);
+    });
+  });
+}
+
+function focusClinic(id){
+  const c = currentRendered.find(x=>x.id===id) || buildComputed().find(x=>x.id===id);
+  if (!c) return;
+  state.highlightedId = c.id;
+
+  setMapCenter(c.lat, c.lng, 15);
+  highlightOnMap(c);
+
+  // open popup if found
+  markersLayer.eachLayer(layer=>{
+    if (layer.getLatLng && layer.getLatLng().lat === c.lat && layer.getLatLng().lng === c.lng){
+      layer.openPopup();
     }
+  });
 
-    // ---------- Address autocomplete + geocode ----------
-    let suggOpen = false;
-    let geocodeTimer = null;
-    let lastQuery = "";
-    const suggestBox = $("#suggestBox");
-    const addressInput = $("#addressInput");
+  renderMarkers(currentRendered);
+  renderList(currentRendered);
+}
 
-    // Respect Nominatim usage: debounce + minimum chars
-    async function nominatimSuggest(q){
-      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&q=${encodeURIComponent(q)}`;
-      const res = await fetch(url, {
-        headers: {
-          "Accept":"application/json",
-          "User-Agent":"ClinicWaitTimeFinder/1.0 (demo single-file)"
-        }
-      });
-      if (!res.ok) throw new Error("Geocoding failed");
-      return await res.json();
-    }
+function openDirections(id){
+  const c = currentRendered.find(x=>x.id===id) || buildComputed().find(x=>x.id===id);
+  if (!c) return;
+  const origin = state.userLocation ? `${state.userLocation.lat},${state.userLocation.lng}` : `${state.center.lat},${state.center.lng}`;
+  const dest = `${c.lat},${c.lng}`;
+  const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(dest)}&travelmode=driving`;
+  window.open(url, "_blank", "noopener,noreferrer");
+}
 
-    function openSuggest(items){
-      suggestBox.innerHTML = "";
-      if (!items.length){
-        suggestBox.style.display = "none";
-        suggOpen = false;
-        return;
-      }
-      for (const it of items){
-        const row = document.createElement("div");
-        row.className = "row";
-        const title = it.display_name.split(",").slice(0,2).join(", ");
-        const sub = it.display_name.split(",").slice(2).join(", ").trim();
-        row.innerHTML = `
+// ---------- Refresh ----------
+function refresh(){
+  const all = buildComputed();
+  const filtered = all.filter(passesFilters);
+  currentRendered = sortClinics(filtered);
+
+  $("#nearLabel").textContent = state.center.label || `${state.center.lat.toFixed(4)}, ${state.center.lng.toFixed(4)}`;
+  $("#maxDistanceLabel").textContent = `${state.maxDistanceKm} km`;
+  $("#maxWaitLabel").textContent = `${state.maxWaitMin} min`;
+
+  renderMarkers(currentRendered);
+  renderList(currentRendered);
+
+  persistSettings();
+}
+
+// ---------- Address search (Nominatim) ----------
+const addressInput = $("#addressInput");
+const suggestBox = $("#suggestBox");
+
+let suggestOpen = false;
+let suggestItems = [];
+let activeIndex = -1;
+let debounceTimer = null;
+let abortCtrl = null;
+let lastQuery = "";
+let lastFetchAt = 0;
+
+function openSuggest(items, loading=false, infoText=""){
+  suggestItems = items || [];
+  activeIndex = -1;
+
+  const header = `
+    <div class="suggestHeader">
+      <div>${loading ? `<span style="display:inline-flex; gap:8px; align-items:center;"><span class="spin"></span> Searching…</span>` : (infoText ? escapeHtml(infoText) : "Suggestions")}</div>
+      <div style="font-family:var(--mono);">↑ ↓ Enter</div>
+    </div>
+  `;
+
+  if (!loading && (!items || !items.length)){
+    suggestBox.innerHTML = header + `<div class="suggestRow" style="cursor:default;"><div style="color:var(--muted); font-size:12px;">No results. Try adding city or postal code.</div></div>`;
+    suggestBox.style.display = "block";
+    suggestOpen = true;
+    return;
+  }
+
+  let rows = "";
+  if (loading){
+    rows = `<div class="suggestRow" style="cursor:default;"><div style="color:var(--muted); font-size:12px;">Fetching suggestions…</div></div>`;
+  } else {
+    rows = items.map((it, idx)=>{
+      const display = it.display_name || "";
+      const title = display.split(",").slice(0,2).join(", ");
+      const sub = display.split(",").slice(2).join(", ").trim();
+      return `
+        <div class="suggestRow" data-idx="${idx}">
           <div class="pin" aria-hidden="true">
             <svg class="icon" viewBox="0 0 24 24" fill="none">
-              <path d="M12 22s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z" stroke="currentColor" stroke-width="1.8"/>
-              <path d="M12 12.8a2.1 2.1 0 1 0 0-4.2 2.1 2.1 0 0 0 0 4.2Z" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 22s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z" stroke="currentColor" stroke-width="1.9"/>
+              <path d="M12 12.8a2.1 2.1 0 1 0 0-4.2 2.1 2.1 0 0 0 0 4.2Z" stroke="currentColor" stroke-width="1.9"/>
             </svg>
           </div>
           <div style="min-width:0;">
-            <div class="title">${escapeHtml(title)}</div>
-            <div class="sub">${escapeHtml(sub || "")}</div>
+            <div class="sTitle">${escapeHtml(title)}</div>
+            <div class="sSub">${escapeHtml(sub)}</div>
           </div>
-        `;
-        row.addEventListener("click", ()=>{
-          const lat = Number(it.lat), lng = Number(it.lon);
-          const label = it.display_name.split(",").slice(0,3).join(", ");
-          addressInput.value = it.display_name;
-          closeSuggest();
-          setCenter({ lat, lng, label });
-        });
-        suggestBox.appendChild(row);
-      }
-      suggestBox.style.display = "block";
-      suggOpen = true;
-    }
+        </div>
+      `;
+    }).join("");
+  }
 
-    function closeSuggest(){
-      suggestBox.style.display = "none";
-      suggOpen = false;
-    }
+  suggestBox.innerHTML = header + rows;
+  suggestBox.style.display = "block";
+  suggestOpen = true;
 
-    function setCenter({lat,lng,label}){
-      state.center = { lat, lng, label };
-      setMapCenter(lat,lng,13);
-      refresh();
-      fitToResults();
-    }
+  // Click handlers
+  suggestBox.querySelectorAll(".suggestRow[data-idx]").forEach(row=>{
+    row.addEventListener("click", ()=>{
+      const idx = Number(row.getAttribute("data-idx"));
+      chooseSuggestion(idx);
+    });
+  });
+}
 
-    addressInput.addEventListener("input", ()=>{
+function closeSuggest(){
+  suggestBox.style.display = "none";
+  suggestOpen = false;
+  suggestItems = [];
+  activeIndex = -1;
+}
+
+function setActiveIndex(i){
+  activeIndex = i;
+  const rows = Array.from(suggestBox.querySelectorAll(".suggestRow[data-idx]"));
+  rows.forEach(r=>r.classList.remove("active"));
+  const target = rows.find(r=>Number(r.getAttribute("data-idx"))===activeIndex);
+  if (target){
+    target.classList.add("active");
+    // keep it visible
+    const boxRect = suggestBox.getBoundingClientRect();
+    const rRect = target.getBoundingClientRect();
+    if (rRect.bottom > boxRect.bottom) suggestBox.scrollTop += (rRect.bottom - boxRect.bottom) + 8;
+    if (rRect.top < boxRect.top) suggestBox.scrollTop -= (boxRect.top - rRect.top) + 8;
+  }
+}
+
+function chooseSuggestion(idx){
+  const it = suggestItems[idx];
+  if (!it) return;
+
+  const lat = Number(it.lat), lng = Number(it.lon);
+  const label = (it.display_name || "").split(",").slice(0,3).join(", ");
+
+  addressInput.value = it.display_name || "";
+  closeSuggest();
+  setCenter({ lat, lng, label });
+}
+
+function setCenter({lat,lng,label}){
+  state.center = { lat, lng, label };
+  setMapCenter(lat,lng,13);
+  refresh();
+  fitToResults();
+}
+
+async function nominatimSearch(q){
+  // rate limit: 1 request / 1 second
+  const now = Date.now();
+  const wait = Math.max(0, 1000 - (now - lastFetchAt));
+  if (wait) await new Promise(r=>setTimeout(r, wait));
+  lastFetchAt = Date.now();
+
+  if (abortCtrl) abortCtrl.abort();
+  abortCtrl = new AbortController();
+
+  // Use jsonv2, add addressdetails, limit, accept-language for better results
+  const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=7&accept-language=en&q=${encodeURIComponent(q)}`;
+
+  // IMPORTANT: Do NOT set forbidden headers in browsers (e.g., User-Agent)
+  const res = await fetch(url, {
+    method: "GET",
+    signal: abortCtrl.signal,
+    headers: { "Accept": "application/json" }
+  });
+
+  if (!res.ok) throw new Error("Search failed");
+  return await res.json();
+}
+
+addressInput.addEventListener("input", ()=>{
+  const q = addressInput.value.trim();
+  if (q.length < 3){
+    closeSuggest();
+    return;
+  }
+  if (q === lastQuery) return;
+  lastQuery = q;
+
+  if (debounceTimer) clearTimeout(debounceTimer);
+  debounceTimer = setTimeout(async ()=>{
+    try{
+      openSuggest([], true);
+      const items = await nominatimSearch(q);
+      openSuggest(items, false, items.length ? "" : "No results");
+    }catch(e){
+      if (e.name === "AbortError") return;
+      openSuggest([], false, "Search error");
+      toast("Search isn’t responding", "Try again or include city (e.g., “Bloor St W, Toronto”).");
+    }
+  }, 320);
+});
+
+// Keyboard nav for suggestions
+addressInput.addEventListener("keydown", async (e)=>{
+  if (e.key === "Escape"){
+    closeSuggest();
+    return;
+  }
+
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){
+    e.preventDefault();
+    addressInput.focus();
+    addressInput.select();
+    return;
+  }
+
+  if (!suggestOpen){
+    if (e.key === "Enter"){
       const q = addressInput.value.trim();
-      if (q.length < 3){
-        closeSuggest();
-        return;
-      }
-      if (q === lastQuery) return;
-      lastQuery = q;
-
-      if (geocodeTimer) clearTimeout(geocodeTimer);
-      geocodeTimer = setTimeout(async ()=>{
+      if (q.length >= 3){
         try{
-          const items = await nominatimSuggest(q);
-          openSuggest(items);
-        }catch(e){
-          closeSuggest();
-        }
-      }, 350);
-    });
-
-    addressInput.addEventListener("keydown", (e)=>{
-      if (e.key === "Escape") closeSuggest();
-      if (e.key === "Enter"){
-        // Choose first suggestion if open
-        if (suggOpen && suggestBox.firstChild){
-          suggestBox.firstChild.click();
-          e.preventDefault();
-          return;
-        }
-        // Otherwise geocode the typed query once
-        const q = addressInput.value.trim();
-        if (q.length >= 3){
-          (async ()=>{
-            try{
-              const items = await nominatimSuggest(q);
-              if (items && items[0]){
-                const it = items[0];
-                setCenter({
-                  lat:Number(it.lat),
-                  lng:Number(it.lon),
-                  label: it.display_name.split(",").slice(0,3).join(", ")
-                });
-              }
-            }catch(_){}
-          })();
+          openSuggest([], true);
+          const items = await nominatimSearch(q);
+          if (items && items[0]) chooseSuggestion(0);
+          else openSuggest([], false, "No results");
+        }catch{
+          toast("Couldn’t search that", "Try adding a city or postal code.");
         }
       }
-    });
-
-    document.addEventListener("click", (e)=>{
-      if (!e.target.closest(".input")) closeSuggest();
-    });
-
-    // Keyboard shortcut: Ctrl/⌘ K to focus search
-    document.addEventListener("keydown", (e)=>{
-      const isK = e.key.toLowerCase() === "k";
-      if ((e.ctrlKey || e.metaKey) && isK){
-        e.preventDefault();
-        addressInput.focus();
-        addressInput.select();
-      }
-    });
-
-    // ---------- UI bindings ----------
-    $("#sortBy").value = state.sortBy;
-    $("#openNow").value = state.openNow;
-    $("#maxDistance").value = state.maxDistanceKm;
-    $("#maxWait").value = state.maxWaitMin;
-    $("#reportModeLabel").textContent = state.reportMode ? "ON" : "OFF";
-
-    $("#sortBy").addEventListener("change", (e)=>{
-      state.sortBy = e.target.value;
-      persistSettings();
-      refresh();
-    });
-    $("#openNow").addEventListener("change", (e)=>{
-      state.openNow = e.target.value;
-      persistSettings();
-      refresh();
-    });
-    $("#maxDistance").addEventListener("input", (e)=>{
-      state.maxDistanceKm = Number(e.target.value);
-      persistSettings();
-      refresh();
-    });
-    $("#maxWait").addEventListener("input", (e)=>{
-      state.maxWaitMin = Number(e.target.value);
-      persistSettings();
-      refresh();
-    });
-
-    $("#btnReportMode").addEventListener("click", ()=>{
-      state.reportMode = !state.reportMode;
-      $("#reportModeLabel").textContent = state.reportMode ? "ON" : "OFF";
-      persistSettings();
-      refresh();
-    });
-
-    $("#btnFit").addEventListener("click", fitToResults);
-    $("#btnCenter").addEventListener("click", ()=>{
-      setMapCenter(state.center.lat, state.center.lng, 13);
-    });
-
-    $("#btnReset").addEventListener("click", ()=>{
-      state.selectedServices = new Set();
-      state.sortBy = "best";
-      state.openNow = "any";
-      state.maxDistanceKm = 12;
-      state.maxWaitMin = 120;
-      state.highlightedId = null;
-
-      $("#sortBy").value = state.sortBy;
-      $("#openNow").value = state.openNow;
-      $("#maxDistance").value = state.maxDistanceKm;
-      $("#maxWait").value = state.maxWaitMin;
-
-      renderServiceChips();
-      refresh();
-      fitToResults();
-    });
-
-    $("#btnClearLocal").addEventListener("click", ()=>{
-      const ok = confirm("This clears clinics you added + community wait reports stored on THIS device/browser. Continue?");
-      if (!ok) return;
-      localStorage.removeItem(LS.clinics);
-      localStorage.removeItem(LS.reports);
-      state.highlightedId = null;
-      refresh();
-      fitToResults();
-    });
-
-    // ---------- Geolocation ----------
-    $("#btnUseLocation").addEventListener("click", ()=>{
-      if (!navigator.geolocation){
-        alert("Geolocation isn’t available in this browser.");
-        return;
-      }
-      navigator.geolocation.getCurrentPosition(
-        (pos)=>{
-          const { latitude, longitude } = pos.coords;
-          state.userLocation = { lat: latitude, lng: longitude };
-          setCenter({ lat: latitude, lng: longitude, label: "Your location" });
-        },
-        (err)=>{
-          alert("Could not get your location. You can still search an address.");
-        },
-        { enableHighAccuracy:true, timeout:12000, maximumAge:60000 }
-      );
-    });
-
-    // ---------- Modal system ----------
-    const modalBackdrop = $("#modalBackdrop");
-    const modalTitle = $("#modalTitle");
-    const modalBody = $("#modalBody");
-    const modalActions = $("#modalActions");
-
-    function openModal(title, bodyHtml, actionsHtml){
-      modalTitle.textContent = title;
-      modalBody.innerHTML = bodyHtml;
-      modalActions.innerHTML = actionsHtml;
-      modalBackdrop.style.display = "flex";
     }
-    function closeModal(){
-      modalBackdrop.style.display = "none";
-      modalBody.innerHTML = "";
-      modalActions.innerHTML = "";
-    }
-    $("#btnCloseModal").addEventListener("click", closeModal);
-    modalBackdrop.addEventListener("click", (e)=>{
-      if (e.target === modalBackdrop) closeModal();
-    });
-    document.addEventListener("keydown", (e)=>{
-      if (e.key === "Escape" && modalBackdrop.style.display === "flex") closeModal();
-    });
+    return;
+  }
 
-    // ---------- Add Clinic ----------
-    $("#btnAddClinic").addEventListener("click", openAddClinicModal);
+  if (e.key === "ArrowDown"){
+    e.preventDefault();
+    setActiveIndex(clamp(activeIndex + 1, 0, suggestItems.length - 1));
+  }
+  if (e.key === "ArrowUp"){
+    e.preventDefault();
+    setActiveIndex(clamp(activeIndex - 1, 0, suggestItems.length - 1));
+  }
+  if (e.key === "Enter"){
+    e.preventDefault();
+    const idx = activeIndex >= 0 ? activeIndex : 0;
+    chooseSuggestion(idx);
+  }
+});
 
-    function openAddClinicModal(){
-      const body = `
-        <div class="form-grid">
-          <div class="field">
-            <label>Clinic name</label>
-            <input id="fName" placeholder="Example: Midtown Walk-In Clinic" />
-          </div>
-          <div class="field">
-            <label>Phone (optional)</label>
-            <input id="fPhone" placeholder="(416) 555-1234" />
-          </div>
+document.addEventListener("click", (e)=>{
+  if (!e.target.closest(".inputWrap")) closeSuggest();
+});
 
-          <div class="field" style="grid-column:1 / -1;">
-            <label>Address (used for map pin)</label>
-            <input id="fAddress" placeholder="Example: 123 Bloor St W, Toronto, ON" />
-          </div>
+// Global shortcut Ctrl/⌘ K
+document.addEventListener("keydown", (e)=>{
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){
+    e.preventDefault();
+    addressInput.focus();
+    addressInput.select();
+  }
+});
 
-          <div class="field">
-            <label>Website (optional)</label>
-            <input id="fWebsite" placeholder="https://..." />
-          </div>
+// ---------- UI bindings ----------
+$("#sortBy").value = state.sortBy;
+$("#openNow").value = state.openNow;
+$("#maxDistance").value = state.maxDistanceKm;
+$("#maxWait").value = state.maxWaitMin;
+$("#reportModeLabel").textContent = state.reportMode ? "ON" : "OFF";
 
-          <div class="field">
-            <label>Base wait estimate (min)</label>
-            <input id="fWait" type="number" min="0" max="240" value="45" />
-          </div>
+$("#sortBy").addEventListener("change", (e)=>{ state.sortBy = e.target.value; persistSettings(); refresh(); });
+$("#openNow").addEventListener("change", (e)=>{ state.openNow = e.target.value; persistSettings(); refresh(); });
+$("#maxDistance").addEventListener("input", (e)=>{ state.maxDistanceKm = Number(e.target.value); persistSettings(); refresh(); });
+$("#maxWait").addEventListener("input", (e)=>{ state.maxWaitMin = Number(e.target.value); persistSettings(); refresh(); });
 
-          <div class="field" style="grid-column:1 / -1;">
-            <label>Services (comma-separated)</label>
-            <input id="fServices" placeholder="Walk-in, Vaccines, Bloodwork" />
-          </div>
+$("#btnReportMode").addEventListener("click", ()=>{
+  state.reportMode = !state.reportMode;
+  $("#reportModeLabel").textContent = state.reportMode ? "ON" : "OFF";
+  persistSettings();
+  refresh();
+});
 
-          <div class="field" style="grid-column:1 / -1;">
-            <label>Hours (simple)</label>
-            <textarea id="fHours" placeholder="Format examples:
+$("#btnFit").addEventListener("click", fitToResults);
+$("#btnCenter").addEventListener("click", ()=> setMapCenter(state.center.lat, state.center.lng, 13));
+
+$("#btnReset").addEventListener("click", ()=>{
+  state.selectedServices = new Set();
+  state.sortBy = "best";
+  state.openNow = "any";
+  state.maxDistanceKm = 12;
+  state.maxWaitMin = 120;
+  state.highlightedId = null;
+
+  $("#sortBy").value = state.sortBy;
+  $("#openNow").value = state.openNow;
+  $("#maxDistance").value = state.maxDistanceKm;
+  $("#maxWait").value = state.maxWaitMin;
+
+  renderServiceChips();
+  refresh();
+  fitToResults();
+  toast("Reset complete", "Filters restored to defaults.");
+});
+
+$("#btnClearLocal").addEventListener("click", ()=>{
+  const ok = confirm("Clear locally saved clinics + reports on this device?");
+  if (!ok) return;
+  localStorage.removeItem(LS.clinics);
+  localStorage.removeItem(LS.reports);
+  state.highlightedId = null;
+  refresh();
+  fitToResults();
+  toast("Local data cleared");
+});
+
+// ---------- Geolocation ----------
+$("#btnUseLocation").addEventListener("click", ()=>{
+  if (!navigator.geolocation){
+    toast("Geolocation not available", "Search an address instead.");
+    return;
+  }
+  toast("Getting your location…");
+  navigator.geolocation.getCurrentPosition(
+    (pos)=>{
+      const { latitude, longitude } = pos.coords;
+      state.userLocation = { lat: latitude, lng: longitude };
+      setCenter({ lat: latitude, lng: longitude, label: "Your location" });
+      toast("Centered on your location");
+    },
+    ()=>{
+      toast("Couldn’t access your location", "Allow location access or search an address.");
+    },
+    { enableHighAccuracy:true, timeout:12000, maximumAge:60000 }
+  );
+});
+
+// ---------- Modal system ----------
+const modalBackdrop = $("#modalBackdrop");
+const modalTitle = $("#modalTitle");
+const modalBody = $("#modalBody");
+const modalActions = $("#modalActions");
+
+function openModal(title, bodyHtml, actionsHtml){
+  modalTitle.textContent = title;
+  modalBody.innerHTML = bodyHtml;
+  modalActions.innerHTML = actionsHtml;
+  modalBackdrop.style.display = "flex";
+}
+function closeModal(){
+  modalBackdrop.style.display = "none";
+  modalBody.innerHTML = "";
+  modalActions.innerHTML = "";
+}
+$("#btnCloseModal").addEventListener("click", closeModal);
+modalBackdrop.addEventListener("click", (e)=>{ if (e.target === modalBackdrop) closeModal(); });
+document.addEventListener("keydown", (e)=>{ if (e.key === "Escape" && modalBackdrop.style.display === "flex") closeModal(); });
+
+// ---------- Add clinic ----------
+$("#btnAddClinic").addEventListener("click", openAddClinicModal);
+
+function uid(){ return Math.random().toString(16).slice(2) + Date.now().toString(16); }
+
+function normalizeHM(hm){
+  const [h,m] = hm.split(":").map(Number);
+  const hh = String(clamp(h,0,23)).padStart(2,"0");
+  const mm = String(clamp(m,0,59)).padStart(2,"0");
+  return `${hh}:${mm}`;
+}
+function parseHoursText(txt){
+  const out = { mon:null,tue:null,wed:null,thu:null,fri:null,sat:null,sun:null };
+  if (!txt) return out;
+  const lines = txt.split("\n").map(l=>l.trim()).filter(Boolean);
+  for (const line of lines){
+    const m = line.match(/^(mon|tue|wed|thu|fri|sat|sun)\s+(.+)$/i);
+    if (!m) continue;
+    const day = m[1].toLowerCase();
+    const rest = m[2].trim().toLowerCase();
+    if (rest.includes("closed")){ out[day]=null; continue; }
+    const r = rest.match(/^(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})$/);
+    if (!r) continue;
+    out[day] = [normalizeHM(r[1]), normalizeHM(r[2])];
+  }
+  return out;
+}
+
+function openAddClinicModal(){
+  const body = `
+    <div class="formGrid">
+      <div class="field">
+        <label>Clinic name</label>
+        <input id="fName" placeholder="Example: Midtown Walk-In Clinic" />
+      </div>
+      <div class="field">
+        <label>Phone (optional)</label>
+        <input id="fPhone" placeholder="(416) 555-1234" />
+      </div>
+
+      <div class="field" style="grid-column:1 / -1;">
+        <label>Address (used for map pin)</label>
+        <input id="fAddress" placeholder="Example: 123 Bloor St W, Toronto, ON" />
+      </div>
+
+      <div class="field">
+        <label>Website (optional)</label>
+        <input id="fWebsite" placeholder="https://..." />
+      </div>
+
+      <div class="field">
+        <label>Base wait estimate (min)</label>
+        <input id="fWait" type="number" min="0" max="240" value="45" />
+      </div>
+
+      <div class="field" style="grid-column:1 / -1;">
+        <label>Services (comma-separated)</label>
+        <input id="fServices" placeholder="Walk-in, Vaccines, Bloodwork" />
+      </div>
+
+      <div class="field" style="grid-column:1 / -1;">
+        <label>Hours</label>
+        <textarea id="fHours" placeholder="Example:
 mon 09:00-19:00
 tue 09:00-19:00
 wed 09:00-19:00
@@ -1715,192 +1723,133 @@ thu 09:00-19:00
 fri 09:00-18:00
 sat 10:00-16:00
 sun closed"></textarea>
-          </div>
-        </div>
-        <div class="note">
-          This is stored on <b>your device</b> via <code>localStorage</code>. For a public directory, connect a real database/backend.
-          Address geocoding uses OpenStreetMap Nominatim and may take a moment.
-        </div>
-      `;
+      </div>
+    </div>
+    <div class="note">
+      Saved on <b>your device</b> via <code>localStorage</code>. For a public directory, connect a backend later.
+      Address search uses OpenStreetMap Nominatim and is rate-limited.
+    </div>
+  `;
+  const actions = `
+    <button class="btn small" id="btnCancelAdd">Cancel</button>
+    <button class="btn small primary" id="btnSaveAdd">Save Clinic</button>
+  `;
+  openModal("Add Clinic", body, actions);
 
-      const actions = `
-        <button class="btn sm" id="btnCancelAdd">Cancel</button>
-        <button class="btn sm primary" id="btnSaveAdd">Save Clinic</button>
-      `;
-
-      openModal("Add Clinic", body, actions);
-
-      $("#btnCancelAdd").addEventListener("click", closeModal);
-      $("#btnSaveAdd").addEventListener("click", async ()=>{
-        const name = ($("#fName").value || "").trim();
-        const address = ($("#fAddress").value || "").trim();
-        if (!name || !address){
-          alert("Please enter a clinic name and address.");
-          return;
-        }
-
-        // Geocode address once
-        let latLng = null;
-        try{
-          const items = await nominatimSuggest(address);
-          if (items && items[0]){
-            latLng = { lat: Number(items[0].lat), lng: Number(items[0].lon) };
-          }
-        }catch(e){}
-
-        if (!latLng){
-          alert("Could not locate that address. Try a more specific address (include city).");
-          return;
-        }
-
-        const clinic = {
-          id: "u_" + uid(),
-          name,
-          address,
-          lat: latLng.lat,
-          lng: latLng.lng,
-          phone: ($("#fPhone").value || "").trim(),
-          website: ($("#fWebsite").value || "").trim(),
-          services: ($("#fServices").value || "").split(",").map(s=>s.trim()).filter(Boolean),
-          hours: parseHoursText(($("#fHours").value || "").trim()),
-          rating: 4.2, // default
-          baseWaitMin: clamp(Number($("#fWait").value || 45), 0, 240),
-          lastUpdated: new Date().toISOString()
-        };
-
-        const local = loadJSON(LS.clinics, []);
-        local.unshift(clinic);
-        saveJSON(LS.clinics, local);
-
-        closeModal();
-
-        // Center on added clinic & refresh
-        setCenter({ lat: clinic.lat, lng: clinic.lng, label: clinic.address.split(",").slice(0,2).join(", ") });
-        state.highlightedId = clinic.id;
-        refresh();
-        fitToResults();
-      });
+  $("#btnCancelAdd").addEventListener("click", closeModal);
+  $("#btnSaveAdd").addEventListener("click", async ()=>{
+    const name = ($("#fName").value || "").trim();
+    const address = ($("#fAddress").value || "").trim();
+    if (!name || !address){
+      toast("Missing info", "Please enter a clinic name and address.");
+      return;
     }
 
-    function parseHoursText(txt){
-      // returns { mon:["09:00","19:00"], ... } or null entries for closed
-      const out = { mon:null,tue:null,wed:null,thu:null,fri:null,sat:null,sun:null };
-      if (!txt) return out;
-      const lines = txt.split("\n").map(l=>l.trim()).filter(Boolean);
-      for (const line of lines){
-        const m = line.match(/^(mon|tue|wed|thu|fri|sat|sun)\s+(.+)$/i);
-        if (!m) continue;
-        const day = m[1].toLowerCase();
-        const rest = m[2].trim().toLowerCase();
-        if (rest.includes("closed")){
-          out[day] = null;
-          continue;
-        }
-        const r = rest.match(/^(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})$/);
-        if (!r) continue;
-        const open = normalizeHM(r[1]);
-        const close = normalizeHM(r[2]);
-        out[day] = [open, close];
+    toast("Adding clinic…", "Geocoding address.");
+    try{
+      const items = await nominatimSearch(address);
+      if (!items || !items[0]){
+        toast("Couldn’t locate that address", "Try adding city/postal code.");
+        return;
       }
-      return out;
+      const lat = Number(items[0].lat), lng = Number(items[0].lon);
+
+      const clinic = {
+        id: "u_" + uid(),
+        name,
+        address,
+        lat, lng,
+        phone: ($("#fPhone").value || "").trim(),
+        website: ($("#fWebsite").value || "").trim(),
+        services: ($("#fServices").value || "").split(",").map(s=>s.trim()).filter(Boolean),
+        hours: parseHoursText(($("#fHours").value || "").trim()),
+        rating: 4.2,
+        baseWaitMin: clamp(Number($("#fWait").value || 45), 0, 240),
+        lastUpdated: new Date().toISOString()
+      };
+
+      const local = loadJSON(LS.clinics, []);
+      local.unshift(clinic);
+      saveJSON(LS.clinics, local);
+
+      closeModal();
+      setCenter({ lat, lng, label: clinic.address.split(",").slice(0,2).join(", ") });
+      state.highlightedId = clinic.id;
+      refresh();
+      fitToResults();
+      toast("Clinic added!");
+    }catch(e){
+      toast("Couldn’t add clinic", "Try again in a moment.");
     }
+  });
+});
 
-    function normalizeHM(hm){
-      const [h,m] = hm.split(":").map(Number);
-      const hh = String(clamp(h,0,23)).padStart(2,"0");
-      const mm = String(clamp(m,0,59)).padStart(2,"0");
-      return `${hh}:${mm}`;
-    }
+// ---------- Report wait modal ----------
+function openReportModal(clinicId){
+  const c = buildComputed().find(x=>x.id===clinicId);
+  if (!c) return;
 
-    // ---------- Report Wait Modal ----------
-    function openReportModal(clinicId){
-      const clinics = buildComputedClinics();
-      const c = clinics.find(x=>x.id === clinicId);
-      if (!c) return;
+  const reports = (getReports()[clinicId] || []).slice(0,5);
+  const body = `
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <div class="field">
+        <label>Clinic</label>
+        <input value="${escapeAttr(c.name)}" disabled />
+      </div>
 
-      const reports = getReports()[clinicId] || [];
-      const recent = reports.slice(0,5);
-
-      const body = `
-        <div style="display:flex; flex-direction:column; gap:10px;">
-          <div class="field">
-            <label>Clinic</label>
-            <input value="${escapeAttr(c.name)}" disabled />
-          </div>
-
-          <div class="form-grid">
-            <div class="field">
-              <label>Current estimated wait</label>
-              <input value="~${Math.round(c._waitMin)} min" disabled />
-            </div>
-            <div class="field">
-              <label>Submit wait you experienced (minutes)</label>
-              <input id="fReportWait" type="number" min="0" max="600" placeholder="Example: 35" />
-            </div>
-          </div>
-
-          <div class="field">
-            <label>Recent community reports</label>
-            <div style="font-size:12px; color: rgba(229,231,235,.92); line-height:1.4;">
-              ${recent.length ? recent.map(r=>`• <b>${Math.round(r.minutes)}m</b> <span class="muted">(${timeAgo(r.ts)})</span>`).join("<br/>")
-                : `<span class="muted">No reports yet. Be the first to help others.</span>`}
-            </div>
-          </div>
-
-          <div class="note">
-            Reports are stored locally on your device. To share wait times across users, connect a database later.
-          </div>
+      <div class="formGrid">
+        <div class="field">
+          <label>Current estimated wait</label>
+          <input value="~${Math.round(c._waitMin)} min" disabled />
         </div>
-      `;
+        <div class="field">
+          <label>Submit wait you experienced (minutes)</label>
+          <input id="fReportWait" type="number" min="0" max="600" placeholder="Example: 35" />
+        </div>
+      </div>
 
-      const actions = `
-        <button class="btn sm" id="btnCancelReport">Cancel</button>
-        <button class="btn sm primary" id="btnSaveReport">Submit</button>
-      `;
+      <div class="field">
+        <label>Recent community reports</label>
+        <div style="font-size:12px; line-height:1.45;">
+          ${
+            reports.length
+              ? reports.map(r => `• <b>${Math.round(r.minutes)}m</b> <span class="muted">(${escapeHtml(timeAgo(r.ts))})</span>`).join("<br/>")
+              : `<span class="muted">No reports yet. Be the first to help others.</span>`
+          }
+        </div>
+      </div>
 
-      openModal("Report Wait Time", body, actions);
+      <div class="note">Reports are stored locally on your device. Add a backend later to share across users.</div>
+    </div>
+  `;
+  const actions = `
+    <button class="btn small" id="btnCancelReport">Cancel</button>
+    <button class="btn small primary" id="btnSaveReport">Submit</button>
+  `;
+  openModal("Report Wait Time", body, actions);
 
-      $("#btnCancelReport").addEventListener("click", closeModal);
-      $("#btnSaveReport").addEventListener("click", ()=>{
-        const v = Number($("#fReportWait").value);
-        if (!Number.isFinite(v) || v < 0 || v > 600){
-          alert("Please enter a wait time between 0 and 600 minutes.");
-          return;
-        }
-        addReport(clinicId, v);
-        closeModal();
-        refresh();
-      });
+  $("#btnCancelReport").addEventListener("click", closeModal);
+  $("#btnSaveReport").addEventListener("click", ()=>{
+    const v = Number($("#fReportWait").value);
+    if (!Number.isFinite(v) || v < 0 || v > 600){
+      toast("Invalid wait time", "Enter a number between 0 and 600.");
+      return;
     }
-
-    // ---------- Escape helpers ----------
-    function escapeHtml(str){
-      return String(str).replace(/[&<>"']/g, s=>({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-      }[s]));
-    }
-    function escapeAttr(str){
-      return escapeHtml(str).replace(/"/g, "&quot;");
-    }
-
-    // ---------- Init ----------
-    renderServiceChips();
-
-    // Restore map center
-    setMapCenter(state.center.lat, state.center.lng, 13);
+    addReport(clinicId, v);
+    closeModal();
     refresh();
+    toast("Thanks! Report submitted.");
+  });
+}
 
-    // If user previously had location saved, center it lightly
-    if (state.userLocation && typeof state.userLocation.lat === "number"){
-      // Don’t force it if they had a non-location search center saved
-      // Keep it available for directions origin
-    }
+// ---------- Init ----------
+renderServiceChips();
+setMapCenter(state.center.lat, state.center.lng, 13);
+refresh();
+setTimeout(()=>fitToResults(), 450);
 
-    // Quick fit after first paint
-    setTimeout(()=>fitToResults(), 450);
-
-    // Auto-refresh every 60s to keep "closing soon" accurate and update staleness penalty
-    setInterval(()=>refresh(), 60000);
-  </script>
+// Auto-refresh so “closing soon” stays accurate
+setInterval(()=>refresh(), 60000);
+</script>
 </body>
 </html>
